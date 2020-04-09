@@ -21,72 +21,92 @@ tablename = 'covid_19.brazil_stg'
 indir = '/home/ubuntu/dump/dados_covid_19/brazil/'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
 current_date = date.today()-timedelta(days=1)
-current_date = date.today()
+
+def removeOldFiles():
+    oldfiles = [f for f in os.listdir(indir) if f.endswith('.csv')]
+    for oldfile in oldfiles:
+        os.remove(indir+oldfile)
 
 def checkFile(time):
     print('Downloading file...')
-    while True:
+    count = 0
+    while count < 5:
         try:
             file = [f for f in os.listdir(indir) if f.endswith('.csv')][0]
         except:
             sleep(time)
+            count += 1
         else:
             sleep(time)
             return file
 
-chromeOptions = webdriver.ChromeOptions()
-prefs = {"download.default_directory" : indir}
-chromeOptions.add_experimental_option("prefs",prefs)
-display = Display(visible=0, size=(800,600))
-display.start()
-driver = webdriver.Chrome(executable_path='/home/ubuntu/scripts/load-dados-reclame-aqui/chromedriver', options=chromeOptions)
-driver.get("https://covid.saude.gov.br/")
+def convertDate(data):
+    try:
+        newdate = datetime.strptime(data,'%d/%m/%Y').date()
+    except:
+        newdate = datetime.fromordinal(datetime(1900, 1, 1).toordinal() + int(data) - 2).date()
+    return newdate
 
-driver.implicitly_wait(WAIT)
+def downloadFile(url):
+    removeOldFiles()
 
-element_present = EC.element_to_be_clickable((By.XPATH, '/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content'))
-WebDriverWait(driver, WAIT).until(element_present)
-driver.find_element_by_xpath('/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content').click()
+    chromeOptions = webdriver.ChromeOptions()
+    prefs = {"download.default_directory" : indir}
+    chromeOptions.add_experimental_option("prefs",prefs)
+    display = Display(visible=0, size=(800,600))
+    display.start()
+    driver = webdriver.Chrome(executable_path='/home/ubuntu/scripts/load-dados-reclame-aqui/chromedriver', options=chromeOptions)
+    driver.get(url)
 
-driver.find_element_by_tag_name('html').send_keys(Keys.END)
-element_present = EC.element_to_be_clickable((By.XPATH, '/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content/div[6]/div[1]/img'))
-WebDriverWait(driver, WAIT).until(element_present)
-driver.find_element_by_xpath('/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content/div[6]/div[1]/img').click()
+    driver.implicitly_wait(WAIT)
 
-file = checkFile(5)
+    element_present = EC.element_to_be_clickable((By.XPATH, '/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content'))
+    WebDriverWait(driver, WAIT).until(element_present)
+    driver.find_element_by_xpath('/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content').click()
 
-driver.quit()
-display.stop()
+    driver.find_element_by_tag_name('html').send_keys(Keys.END)
+    element_present = EC.element_to_be_clickable((By.XPATH, '/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content/div[6]/div[1]/img'))
+    WebDriverWait(driver, WAIT).until(element_present)
+    driver.find_element_by_xpath('/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content/div[6]/div[1]/img').click()
 
-with open(indir+file, 'r', encoding="utf-8") as ifile:
-    reader = csv.reader(ifile, delimiter=';')
-    header = next(reader, None)  ### Pula o cabeçalho
-    with open(outdir+file,'w', newline="\n", encoding="utf-8") as ofile:
-        writer = csv.writer(ofile, delimiter=';')
-        for row in reader:
-            if datetime.strptime(row[2],'%d/%m/%Y').date() != current_date:
-                continue
-            row[2] = str(datetime.strptime(row[2], '%d/%m/%Y').date())
-            del row[0]
-            del row[2]
-            del row[3]
-            writer.writerow(row)
-os.remove(indir+file)
+    file = checkFile(5)
 
-### conecta no banco de dados
-db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))
-cursor = db_conn.cursor()
+    driver.quit()
+    display.stop()
+    return file
 
-### copy
-with open(outdir+file, 'r') as ifile:
-    SQL_STATEMENT = "COPY %s FROM STDIN WITH CSV DELIMITER AS ';' NULL AS ''"
-    print("Executing Copy in "+tablename)
-    cursor.copy_expert(sql=SQL_STATEMENT % tablename, file=ifile)
-    db_conn.commit()
+def parseCSV():
+    file = downloadFile("https://covid.saude.gov.br/")
 
-os.remove(outdir+file)
-cursor.close()
-db_conn.close()
+    with open(indir+file, 'r', encoding="latin-1") as ifile:
+        reader = csv.reader(ifile, delimiter=';')
+        header = next(reader, None)  ### Pula o cabeçalho
+        with open(outdir+file,'w', newline="\n", encoding="utf-8") as ofile:
+            writer = csv.writer(ofile, delimiter=';')
+            for row in reader:
+                if convertDate(row[2]) != current_date:
+                    continue
+                row[2] = str(convertDate(row[2]))
+                newrow = [row[2],row[1],row[4],row[6]]
+                writer.writerow(newrow)
+    os.remove(indir+file)
 
-### VACUUM ANALYZE
-call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
+    ### conecta no banco de dados
+    db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))
+    cursor = db_conn.cursor()
+
+    ### copy
+    with open(outdir+file, 'r') as ifile:
+        SQL_STATEMENT = "COPY %s FROM STDIN WITH CSV DELIMITER AS ';' NULL AS ''"
+        print("Executing Copy in "+tablename)
+        cursor.copy_expert(sql=SQL_STATEMENT % tablename, file=ifile)
+        db_conn.commit()
+
+    os.remove(outdir+file)
+    cursor.close()
+    db_conn.close()
+
+    ### VACUUM ANALYZE
+    call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
+
+#parseCSV()
