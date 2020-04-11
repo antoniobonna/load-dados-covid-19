@@ -14,7 +14,7 @@ DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 tablename = 'covid_19.usa_stg'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
 file = 'states.csv'
-current_date = str(date.today())
+current_date = date.today()-timedelta(days=1)
 
 CSV_URL = 'https://covidtracking.com/api/states.csv'
 

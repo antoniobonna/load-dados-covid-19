@@ -28,7 +28,7 @@ with requests.get(CSV_URL, stream=True) as r:
         for row in reader:
             if row[0] == current_date and row[1] != 'World':
                 found = True
-                row[1] = row[1].replace('Cape Verde','Cabo Verde')
+                row[1] = row[1].replace('Cape Verde','Cabo Verde').replace("Cote d'Ivoire",'Ivory Coast').replace('Sint Maarten (Dutch part)','Saint Martin').replace('Timor','Timor-Leste').replace('Curacao','Curaçao')
                 writer.writerow(row)
 
 if not found:

@@ -75,8 +75,8 @@ def downloadFile(url):
     display.stop()
     return file
 
-def parseCSV():
-    file = downloadFile("https://covid.saude.gov.br/")
+def parseCSV(url):
+    file = downloadFile(url)
 
     with open(indir+file, 'r', encoding="latin-1") as ifile:
         reader = csv.reader(ifile, delimiter=';')

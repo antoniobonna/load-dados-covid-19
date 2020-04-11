@@ -33,10 +33,16 @@ export -f LoadDW
 
 echo -e "$(horario): Inicio do staging.\n-\n"
 
-ListaArquivos="load_dados_worldmeters.py load_dados_us.py load_dados_brazil.py crawler_italy.py load_dados_spain.py load_dados_tests.py load_data_world_in_data.py"
-for FILE in $ListaArquivos; do
-	stagingDados $FILE
-done
+ListaArquivos="load_dados_worldmeters.py
+load_dados_us.py
+load_dados_brazil.py
+crawler_italy.py
+load_dados_spain.py
+load_dados_tests.py
+load_world_in_data.py"
+
+TotalTabelas=$(echo $ListaArquivos | wc -w)
+parallel stagingDados {}\; 'echo -e "\nProgress: {#}/'$TotalTabelas'\n"' ::: $ListaArquivos
 
 ### Carrega dados no DW
 

@@ -67,7 +67,7 @@ VACUUM ANALYZE covid_19_dw.brazil;
 \! echo "Carregando dados na tabela fato usa..."
 
 INSERT INTO covid_19_dw.usa
-SELECT d.date, s.state_id, positive, negative, hospitalized, death
+SELECT d.date, s.state_id, positive, negative, pending, hospitalized, death
 	FROM covid_19.usa_stg f
 	JOIN covid_19_dw.date d ON f.date=d.date
 	JOIN covid_19_dw.state s ON f.state=s.state_cd AND s.country = 'United States';
@@ -99,7 +99,6 @@ SELECT d.date, c.country_id, tests
 	FROM covid_19.tests_stg f
 	JOIN covid_19_dw.date d ON d.date=f.date
 	JOIN covid_19_dw.country c ON c.country=f.country
-	WHERE (d.date, c.country_id) 
-	NOT IN (SELECT date, country_id FROM covid_19_dw.tests);
+	WHERE (d.date, c.country_id) NOT IN (SELECT date, country_id FROM covid_19_dw.tests);
 
 VACUUM ANALYZE covid_19_dw.tests;
