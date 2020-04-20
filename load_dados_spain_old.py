@@ -14,19 +14,18 @@ tablename = 'covid_19.spain_stg'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
 file = 'serie_historica.csv'
 current_date = date.today()-timedelta(days=1)
-columns  = ['CCAA','FECHA','CASOS','Hospitalizados','UCI','Fallecidos','Recuperados']
 
 CSV_URL = 'https://covid19.isciii.es/resources/serie_historica_acumulados.csv'
 
 with requests.get(CSV_URL, stream=True) as r:
     lines = (line.decode('latin-1') for line in r.iter_lines())
-    reader = csv.DictReader(lines)
+    reader = csv.reader(lines)
     with open(outdir+file,'w', newline="\n", encoding="utf-8") as ofile:
-        writer = csv.DictWriter(ofile, fieldnames=columns,restval='', extrasaction='ignore',delimiter=';')
+        writer = csv.writer(ofile, delimiter=';')
         for row in reader:
-            if row and len(row['CCAA']) == 2 and datetime.strptime(row['FECHA'],'%d/%m/%Y').date() == current_date:
-                row['FECHA'] = str(datetime.strptime(row['FECHA'], '%d/%m/%Y').date())
-                writer.writerow(row)
+            if row and len(row[0]) == 2 and datetime.strptime(row[1],'%d/%m/%Y').date() == current_date:
+                row[1] = str(datetime.strptime(row[1], '%d/%m/%Y').date())
+                writer.writerow(row[:7])
 
 ### conecta no banco de dados
 db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))

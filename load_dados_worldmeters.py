@@ -3,7 +3,7 @@ import credentials
 from sqlalchemy import create_engine
 from subprocess import call
 import requests
-from datetime import date
+from datetime import date,timedelta
 
 ### definicoes de variaveis
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
@@ -12,12 +12,12 @@ schema = 'covid_19'
 table_name = 'coronavirus_who_stg'
 url = 'https://www.worldometers.info/coronavirus/#countries'
 headers = ['country', 'total_cases', 'new_cases', 'total_deaths', 'new_deaths', 'total_recovered', 'active_cases', 'critical', 'cases_per_milion', 'deaths_per_milion', 'total_tests', 'tests_per_milion']
-current_date = date.today()
+current_date = date.today()-timedelta(days=1)
 
 def parseHtmlTable(url):
     html = requests.get(url).content
     df_list = pd.read_html(html)
-    table = df_list[0]
+    table = df_list[1]
     df = table[table['Country,Other'] != 'World'][:-1]
     df = df[df.columns[:12]]
 

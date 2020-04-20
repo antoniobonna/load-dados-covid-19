@@ -6,6 +6,8 @@ DIR="/home/ubuntu/scripts/load-dados-covid-19"
 STARTDATE=$(date +'%F %T')
 SCRIPTNAME="load-dados-covid-19.sh"
 
+export DIR
+
 horario()
 {
 	date +%d/%m/%Y" - "%H:%M:%S
@@ -16,7 +18,7 @@ stagingDados()
 {
 	FILE=$1
 	time python ${DIR}/${FILE}
-	echo -e "$(horario): Script $FILE executado.\n-\n"
+	echo -e "$(horario): Script $FILE executado.\n"
 }
 export -f stagingDados
 
@@ -33,16 +35,10 @@ export -f LoadDW
 
 echo -e "$(horario): Inicio do staging.\n-\n"
 
-ListaArquivos="load_dados_worldmeters.py
-load_dados_us.py
-load_dados_brazil.py
-crawler_italy.py
-load_dados_spain.py
-load_dados_tests.py
-load_world_in_data.py"
+ListaArquivos="load_dados_worldmeters.py load_dados_us.py load_dados_brazil.py crawler_italy.py load_dados_spain.py load_dados_tests.py load_world_in_data.py"
 
 TotalTabelas=$(echo $ListaArquivos | wc -w)
-parallel stagingDados {}\; 'echo -e "\nProgress: {#}/'$TotalTabelas'\n"' ::: $ListaArquivos
+parallel -k stagingDados {}\; 'echo -e "\nProgress: {#}/'$TotalTabelas'\n"' ::: $ListaArquivos
 
 ### Carrega dados no DW
 

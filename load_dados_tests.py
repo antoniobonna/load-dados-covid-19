@@ -18,10 +18,14 @@ def parseHtmlTable(url):
     df = df[['Entity','Date','Cumulative total']]
     df = df[df['Entity'] != 'United States - specimens tested (CDC)']
     df = df[df['Entity'] != 'India - people tested']
+    df = df[df['Entity'] != 'Singapore - swabs tested']
+    df = df[df['Entity'] != 'Japan - people tested']
+    df = df[df['Cumulative total'].notna()]
 
     df.columns = headers
     df = df.copy()
     df['country'] = df['country'].str.split(' - ').str[0]
+    df = df.groupby(['country','date'], as_index=False).max()
 
     cursor.execute("TRUNCATE {}.{}".format(schema,table_name))
     db_conn.commit()

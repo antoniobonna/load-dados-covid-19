@@ -29,6 +29,7 @@ with requests.get(CSV_URL, stream=True) as r:
             if row[0] == current_date and row[1] != 'World':
                 found = True
                 row[1] = row[1].replace('Cape Verde','Cabo Verde').replace("Cote d'Ivoire",'Ivory Coast').replace('Sint Maarten (Dutch part)','Saint Martin').replace('Timor','Timor-Leste').replace('Curacao','Curaçao')
+                row[0] = str(date.today()-timedelta(days=1))
                 writer.writerow(row)
 
 if not found:
