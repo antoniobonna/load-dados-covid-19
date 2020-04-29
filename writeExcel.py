@@ -25,6 +25,21 @@ query_country = '''SELECT date, cases, new_cases, cases_evolution, deaths, new_d
 	WHERE country = '{}' 
 	ORDER BY date OFFSET 1'''
 
+query_brazil_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
+	FROM covid_19_dw.vw_brazil_states ORDER BY 1 LIMIT 20'''
+
+query_brazil_cities = '''SELECT "#", city, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
+	FROM covid_19_dw.vw_brazil_cities ORDER BY 1 LIMIT 20'''
+
+query_usa_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
+	FROM covid_19_dw.vw_usa_states ORDER BY 1 LIMIT 20'''
+
+query_italy_regions = '''SELECT "#", region, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
+	FROM covid_19_dw.vw_italy_regions ORDER BY 1'''
+
+query_spain_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
+	FROM covid_19_dw.vw_spain_states ORDER BY 1'''
+
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 
 ### conecta no banco de dados
@@ -50,6 +65,51 @@ for country in countries:
     for i in range(len(result)):
         for j in range(len(result[i])):
             sheet.cell(row = i+3, column = j+1).value = result[i][j]
+
+sheet = wb['Brazil States']
+
+cursor.execute(query_brazil_states)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
+
+sheet = wb['Brazil Cities']
+
+cursor.execute(query_brazil_cities)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
+
+sheet = wb['USA States']
+
+cursor.execute(query_usa_states)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
+
+sheet = wb['Italy Regions']
+
+cursor.execute(query_italy_regions)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
+
+sheet = wb['Spain States']
+
+cursor.execute(query_spain_states)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
 
 wb.save(outdir+file)
 wb.close()

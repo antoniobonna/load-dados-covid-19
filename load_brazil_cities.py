@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date,datetime,timedelta
 import credentials
 import csv
 from subprocess import call
@@ -10,26 +9,20 @@ import psycopg2
 
 ### variaveis
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
-tablename = 'covid_19.spain_stg'
+tablename = 'covid_19.brazil_cities_stg'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
-file = 'serie_historica.csv'
-current_date = date.today()-timedelta(days=1)
-columns  = ['CCAA','FECHA','PCR+','Hospitalizados','UCI','Fallecidos','Recuperados']
+file = 'brazil_cities.csv'
+columns  = ['date','city_ibge_code','state','city','confirmed','deaths','estimated_population_2019']
 
-CSV_URL = 'https://covid19.isciii.es/resources/serie_historica_acumulados.csv'
+CSV_URL = 'http://brasil.io/dataset/covid19/caso?format=csv'
 
 with requests.get(CSV_URL, stream=True) as r:
-    lines = (line.decode('latin-1') for line in r.iter_lines())
+    lines = (line.decode('utf-8') for line in r.iter_lines())
     reader = csv.DictReader(lines)
     with open(outdir+file,'w', newline="\n", encoding="utf-8") as ofile:
         writer = csv.DictWriter(ofile, fieldnames=columns,restval='', extrasaction='ignore',delimiter=';')
         for row in reader:
-            if row and len(row['CCAA']) == 2 and datetime.strptime(row['FECHA'],'%d/%m/%Y').date() == current_date:
-                if row['CCAA'] == 'GA':
-                    row['PCR+'] = row['CASOS']
-                else:
-                    row['PCR+'] = int(row['PCR+']) + int(row['TestAc+'])
-                row['FECHA'] = str(datetime.strptime(row['FECHA'], '%d/%m/%Y').date())
+            if row['city_ibge_code'] and row['place_type'] == 'city' and row['is_last'] == 'True':
                 writer.writerow(row)
 
 ### conecta no banco de dados
