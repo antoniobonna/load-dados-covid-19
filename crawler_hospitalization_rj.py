@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from datetime import date, timedelta
 import credentials
 import psycopg2
-from pyvirtualdisplay import Display
 from subprocess import call
 from time import sleep
 
@@ -16,57 +17,77 @@ DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 WAIT = 60
 SLEEPTIME = 10
 tablename = 'covid_19.local_hospitalization'
-current_date = str(date.today()-timedelta(days=1))
+current_date = date.today()-timedelta(days=1)
+str_date = current_date.strftime('%d/%m/%Y')
+driver_path = '/home/ubuntu/scripts/load-dados-reclame-aqui/chromedriver'
+url = "https://experience.arcgis.com/experience/38efc69787a346959c931568bd9e2cc4"
 
-def getText(driver):
-    while True:
-        try:
-            texto = driver.find_elements_by_xpath('//*[starts-with(@id,"ember")]')[0].text
-        except:
-            pass
-        else:
-            return texto
+def _Chrome(driver_path):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("start-maximized")
+    driver = webdriver.Chrome(executable_path=driver_path, options=chrome_options)
+    return driver
 
-display = Display(visible=0, size=(1536,864))
-display.start()
-driver = webdriver.Chrome(executable_path='/home/ubuntu/scripts/load-dados-reclame-aqui/chromedriver')
-driver.get("https://experience.arcgis.com/experience/38efc69787a346959c931568bd9e2cc4")
-driver.maximize_window()
+def _Postgres(DATABASE, USER, HOST, PASSWORD):
+    ### conecta no banco de dados
+    db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))
+    cursor = db_conn.cursor()
+    print('Connected to the database')
+    return (db_conn,cursor)
 
-driver.implicitly_wait(WAIT)
+def parsePage(driver,WAIT,stime):
+    element_present = EC.presence_of_element_located((By.XPATH, '//*[@id="page_0"]/div/div/div/div/div/div/iframe'))
+    WebDriverWait(driver, WAIT).until(element_present)
+    iframe = driver.find_element_by_xpath('//*[@id="page_0"]/div/div/div/div/div/div/iframe')
+    driver.switch_to.frame(iframe)
+    sleep(stime)
+    bs_page = bs(driver.page_source, 'html.parser')
+    return bs_page
 
-element_present = EC.presence_of_element_located((By.XPATH, '//*[@id="page_0"]/div/div/div/div/div/div/iframe'))
-WebDriverWait(driver, WAIT).until(element_present)
+def getDate(bs_page):
+    strdate = bs_page.find('div', {'class': 'subtitle text-ellipsis no-pointer-events'}).text.split()[2]
+    return strdate
 
-iframe = driver.find_element_by_xpath('//*[@id="page_0"]/div/div/div/div/div/div/iframe')
-driver.switch_to.frame(iframe)
+def getValuesText(boxes,key):
+    for i,box in enumerate(boxes):
+        if box.text.strip() == key:
+            return boxes[i+1].text.strip()
 
-sleep(SLEEPTIME)
-# element_present = EC.presence_of_element_located((By.XPATH, '//*[starts-with(@id,"ember")]'))
-# WebDriverWait(driver, WAIT).until(element_present)
+def main():
+    driver = _Chrome(driver_path)
+    driver.get(url)
 
-texto = getText(driver)
+    bs_page = parsePage(driver,WAIT,SLEEPTIME)
+    driver.quit()
 
-hospitalizados_mun = texto.split('Na rede municipal:\nHospitalizados\n')[1].split('\nEm UTI')[0]
-uti_mun = texto.split('\nNa rede SUS:')[0].split('Em UTI\n')[1]
+    if str_date == getDate(bs_page):
 
-hospitalizados_sus = texto.split('\nNa rede SUS:')[1].split('\nHospitalizados\n')[1].split('\n')[0]
-uti_sus = texto.split('\nNa rede SUS:')[1].split('\nEm UTI\n')[1].split('\n')[0]
+        boxes = bs_page.find_all('g', {'class': 'responsive-text-label'})
 
-driver.quit()
-display.stop()
+        hospitalizados_mun = getValuesText(boxes,'Hospitalizados:')
+        uti_mun = getValuesText(boxes,'Em UTI:')
+        
+        hospitalizados_sus = getValuesText(boxes,'Hospitalizados (rede SUS)')
+        uti_sus = getValuesText(boxes,'Em UTI (rede SUS)')
 
-### conecta no banco de dados
-db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))
-cursor = db_conn.cursor()
+        db_conn,cursor = _Postgres(DATABASE, USER, HOST, PASSWORD)
+        query = f"INSERT INTO {tablename} VALUES ('{str(current_date)}','Rio de Janeiro - RJ',{hospitalizados_mun},{uti_mun},{hospitalizados_sus},{uti_sus})"
+        print(query)
+        cursor.execute(query)
+        db_conn.commit()
 
-query = "INSERT INTO {} VALUES ('{}','Rio de Janeiro - RJ',{},{},{},{})".format(tablename,current_date,hospitalizados_mun,uti_mun,hospitalizados_sus,uti_sus)
-# print(query)
-cursor.execute(query)
-db_conn.commit()
+        cursor.close()
+        db_conn.close()
 
-cursor.close()
-db_conn.close()
+        ### VACUUM ANALYZE
+        call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
 
-### VACUUM ANALYZE
-call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
+    else:
+        raise ValueError('No data for ' + str_date)
+
+if __name__=="__main__":
+    main()

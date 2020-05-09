@@ -10,11 +10,11 @@ db_conn = engine.raw_connection()
 cursor = db_conn.cursor()
 schema = 'covid_19'
 table_name = 'tests_stg'
-url = 'https://github.com/owid/covid-19-data/blob/master/public/data/testing/covid-testing.xlsx?raw=true'
+url = 'https://github.com/owid/covid-19-data/blob/master/public/data/testing/covid-testing-all-observations.xlsx?raw=true'
 headers = ['country', 'date', 'tests']
 
-def parseHtmlTable(url):
-    df = pd.read_excel(url,sheet_name=1)
+def parseExcel(url):
+    df = pd.read_excel(url,sheet_name=0)
     df = df[['Entity','Date','Cumulative total']]
     df = df[df['Entity'] != 'United States - specimens tested (CDC)']
     df = df[df['Entity'] != 'India - people tested']
@@ -36,4 +36,4 @@ def parseHtmlTable(url):
     ### VACUUM ANALYZE
     call('psql -d torkcapital -c "VACUUM ANALYZE {}.{}"'.format(schema,table_name),shell=True)
 
-parseHtmlTable(url)
+parseExcel(url)

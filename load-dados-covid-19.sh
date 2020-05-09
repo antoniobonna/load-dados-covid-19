@@ -35,7 +35,8 @@ export -f LoadDW
 
 echo -e "$(horario): Inicio do staging.\n-\n"
 
-ListaArquivos="load_dados_worldmeters.py load_dados_us.py load_dados_brazil.py load_dados_italy.py load_dados_spain.py load_dados_tests.py load_world_in_data.py load_dados_healthcare.py load_brazil_cities.py load_us_cities.py"
+ListaArquivos="load_dados_worldmeters.py load_dados_us.py load_dados_brazil.py load_dados_italy.py load_dados_spain.py load_dados_tests.py load_world_in_data.py load_dados_healthcare.py load_brazil_cities.py load_us_cities.py crawler_hospitalization_rj.py load_hospitalization_sp.py \
+load_hospitalization_pe.py load_hospitalization_ma.py"
 
 TotalTabelas=$(echo $ListaArquivos | wc -w)
 parallel -k stagingDados {}\; 'echo -e "\nProgress: {#}/'$TotalTabelas'\n"' ::: $ListaArquivos

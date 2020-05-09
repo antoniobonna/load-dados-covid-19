@@ -199,7 +199,7 @@ VACUUM ANALYZE covid_19_dw.city;
 
 -- covid_19_dw.usa_cities
 
-\! echo "Carregando dados na tabela fato brazil_cities..."
+\! echo "Carregando dados na tabela fato usa_cities..."
 
 COPY (
 	SELECT d.date, c.city_id, cases, deaths
@@ -210,3 +210,20 @@ COPY (
 COPY covid_19_dw.usa_cities FROM '/home/ubuntu/dump/dados_covid_19/cities.txt';
 
 VACUUM ANALYZE covid_19_dw.usa_cities;
+
+----------------------------------------------------------------------------
+
+-- covid_19_dw.hospitalization
+
+\! echo "Carregando dados na tabela fato hospitalization..."
+
+INSERT INTO covid_19_dw.hospitalization
+SELECT d.date, l.local_id, b.bed_id, hospitalized
+	FROM covid_19.vw_local_hospitalization f
+	JOIN covid_19_dw.date d ON f.date=d.date
+	JOIN covid_19_dw.local l ON f.local=l.local
+	JOIN covid_19_dw.bed b ON f.bed=b.bed
+	WHERE not hospitalized is null 
+	AND (d.date, l.local_id, b.bed_id) NOT IN (SELECT date, local_id, bed_id FROM covid_19_dw.hospitalization);
+
+VACUUM ANALYZE covid_19_dw.hospitalization;

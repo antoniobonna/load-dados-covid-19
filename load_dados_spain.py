@@ -16,7 +16,7 @@ file = 'serie_historica.csv'
 current_date = date.today()-timedelta(days=1)
 columns  = ['CCAA','FECHA','PCR+','Hospitalizados','UCI','Fallecidos','Recuperados']
 
-CSV_URL = 'https://covid19.isciii.es/resources/serie_historica_acumulados.csv'
+CSV_URL = 'https://cnecovid.isciii.es/covid19/resources/agregados.csv' 
 
 with requests.get(CSV_URL, stream=True) as r:
     lines = (line.decode('latin-1') for line in r.iter_lines())
@@ -25,10 +25,10 @@ with requests.get(CSV_URL, stream=True) as r:
         writer = csv.DictWriter(ofile, fieldnames=columns,restval='', extrasaction='ignore',delimiter=';')
         for row in reader:
             if row and len(row['CCAA']) == 2 and datetime.strptime(row['FECHA'],'%d/%m/%Y').date() == current_date:
-                if row['CCAA'] == 'GA':
-                    row['PCR+'] = row['CASOS']
-                else:
-                    row['PCR+'] = int(row['PCR+']) + int(row['TestAc+'])
+                # if row['CCAA'] == 'GA':
+                    # row['PCR+'] = row['CASOS']
+                # else:
+                    # row['PCR+'] = int(row['PCR+']) + int(row['TestAc+'])
                 row['FECHA'] = str(datetime.strptime(row['FECHA'], '%d/%m/%Y').date())
                 writer.writerow(row)
 

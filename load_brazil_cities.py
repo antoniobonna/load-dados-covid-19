@@ -22,7 +22,7 @@ with requests.get(CSV_URL, stream=True) as r:
     with open(outdir+file,'w', newline="\n", encoding="utf-8") as ofile:
         writer = csv.DictWriter(ofile, fieldnames=columns,restval='', extrasaction='ignore',delimiter=';')
         for row in reader:
-            if row['city_ibge_code'] and row['place_type'] == 'city' and row['is_last'] == 'True':
+            if row['city_ibge_code'] and row['place_type'] == 'city': #and row['is_last'] == 'True':
                 writer.writerow(row)
 
 ### conecta no banco de dados

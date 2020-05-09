@@ -16,7 +16,8 @@ LoadTruncate() {
    TABLE=$1
    time(echo -e "\n"
    if [[ $TABLE -eq "brazil_cities" ]]; then
-      $PSQL -c "INSERT INTO covid_19.${TABLE}_hist TABLE covid_19.${TABLE}_stg EXCEPT TABLE covid_19.${TABLE}_hist"
+      $PSQL -c "TRUNCATE covid_19.${TABLE}_hist;"
+      $PSQL -c "INSERT INTO covid_19.${TABLE}_hist TABLE covid_19.${TABLE}_stg"
    else
       $PSQL -c "INSERT INTO covid_19.${TABLE}_hist TABLE covid_19.${TABLE}_stg"
    fi

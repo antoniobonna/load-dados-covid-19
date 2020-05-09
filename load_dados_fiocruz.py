@@ -12,25 +12,16 @@ DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 tablename = 'covid_19.fiocruz_stg'
 indir = '/home/ubuntu/dump/dados_covid_19/fiocruz/'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
-columns  = ['year','week','Unidade da Federação','Número de casos']
+columns  = ['year','week','Unidade da Federação','Número de casos','update_date']
 filename = 'situacao_da_gripe.csv'
+current_date = str(date.today())
 
 query_etl = '''INSERT INTO covid_19_dw.sars_brazil
 SELECT to_date(concat(f.year::text,'-',f.week::text),'iyyy-iw')+6, s.state_id, new_cases
     FROM covid_19.fiocruz_stg f
     JOIN covid_19_dw.state s ON s.state=f.state AND s.country = 'Brazil'
     WHERE f.year >= 2016
-    AND (to_date(concat(f.year::text,'-',f.week::text),'iyyy-iw')+6, s.state_id)
-    NOT IN (SELECT date, state_id FROM covid_19_dw.sars_brazil)'''
-
-def getDate(file,year):
-    try:
-        week = str(int(file.split('.csv')[0]))
-        current_date = str(datetime.strptime(year + '-' + week + '-0', "%Y-%W-%w").date())
-    except:
-        today = datetime.now().date()
-        current_date = str(today - timedelta(days=today.weekday()) - timedelta(days=8))
-    return current_date
+    '''
 
 def parseCSV(file,year):
     with open(indir+year+'/'+file,'r',encoding='utf-8') as ifile:
@@ -43,6 +34,7 @@ def parseCSV(file,year):
                     row['Número de casos'] = row['Número de casos'].split(" ")[0]
                     row['year'] = int(year)
                     row['week'] = int(file.split('.csv')[0])
+                    row['update_date'] = current_date
                     writer.writerow(row)
     os.remove(indir+year+'/'+file)
 
@@ -68,10 +60,10 @@ os.remove(outdir+filename)
 ### VACUUM ANALYZE
 call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
 
-### ELT para o DW...
-print("Carregando dados na tabela fato sars_brazil...")
-cursor.execute(query_etl)
-db_conn.commit()
+# ### ELT para o DW...
+# print("Carregando dados na tabela fato sars_brazil...")
+# cursor.execute(query_etl)
+# db_conn.commit()
 
 cursor.close()
 db_conn.close()
