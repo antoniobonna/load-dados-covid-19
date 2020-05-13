@@ -42,8 +42,10 @@ def findPDF(url):
 
 def parsePDF(pdf_url,pdf,current_date):
     try:
-        df = tabula.read_pdf(pdf_url,pages = 4, area=(472.162,6.75,725.287,538.65))
-        return df[0]
+        for i in range(3,6):
+            df = tabula.read_pdf(pdf_url,pages = i, area=(472.162,6.75,725.287,538.65))
+            if df:
+                return df[0]
     except:
         for suffix in suffixes:
             try:

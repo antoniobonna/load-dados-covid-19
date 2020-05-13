@@ -34,6 +34,11 @@ query_brazil_cities = '''SELECT "#", city, cases, total_rate, population_rate, d
 query_usa_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
 	FROM covid_19_dw.vw_usa_states ORDER BY 1 LIMIT 20'''
 
+query_local_occupation = '''SELECT CASE WHEN local = 'Rio Grande do Sul' THEN 'Rio Grande do Sul**'
+	WHEN local = 'São Paulo - SP' THEN 'São Paulo - SP*' ELSE local END as local, 
+	bed_number, inpatients, occupation, inpatients_growth
+	FROM covid_19_dw.vw_local_occupation ORDER BY occupation DESC'''
+
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 
 ### conecta no banco de dados
@@ -81,6 +86,15 @@ for i in range(len(result)):
 sheet = wb['USA States']
 
 cursor.execute(query_usa_states)
+result = [item for item in cursor.fetchall()]
+
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+2, column = j+1).value = result[i][j]
+
+sheet = wb['Beds Occupation']
+
+cursor.execute(query_local_occupation)
 result = [item for item in cursor.fetchall()]
 
 for i in range(len(result)):

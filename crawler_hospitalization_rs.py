@@ -42,7 +42,7 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
     return (db_conn,cursor)
 
 def parsePage(driver,WAIT):
-    element_present = EC.presence_of_element_located((By.XPATH, '/html/body/app-root/main/app-sidebar/div/div[2]/p'))
+    element_present = EC.presence_of_element_located((By.XPATH, '//app-beds-amount'))
     WebDriverWait(driver, WAIT).until(element_present)
     bs_page = bs(driver.page_source, 'html.parser')
     return bs_page

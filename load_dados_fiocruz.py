@@ -16,12 +16,17 @@ columns  = ['year','week','Unidade da Federação','Número de casos','update_da
 filename = 'situacao_da_gripe.csv'
 current_date = str(date.today())
 
-query_etl = '''INSERT INTO covid_19_dw.sars_brazil
-SELECT to_date(concat(f.year::text,'-',f.week::text),'iyyy-iw')+6, s.state_id, new_cases
-    FROM covid_19.fiocruz_stg f
+query_etl = '''WITH dados_ordenados AS
+(SELECT year, week, state, new_cases - COALESCE(lag(new_cases,1) over (partition by year, week, state ORDER BY update_date),0) as new_cases, update_date
+	FROM covid_19.fiocruz_stg
+	WHERE year >= 2020)
+
+INSERT INTO covid_19_dw.sars_brazil
+SELECT to_date(concat(f.year::text,'-',f.week::text),'iyyy-iw')+6, s.state_id, new_cases, update_date
+    FROM dados_ordenados f
     JOIN covid_19_dw.state s ON s.state=f.state AND s.country = 'Brazil'
-    WHERE f.year >= 2016
-    '''
+    WHERE new_cases > 0 AND (to_date(concat(f.year::text,'-',f.week::text),'iyyy-iw')+6, s.state_id, update_date)
+	NOT IN (SELECT date, state_id, update_date FROM covid_19_dw.sars_brazil)'''
 
 def parseCSV(file,year):
     with open(indir+year+'/'+file,'r',encoding='utf-8') as ifile:
@@ -60,10 +65,10 @@ os.remove(outdir+filename)
 ### VACUUM ANALYZE
 call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
 
-# ### ELT para o DW...
-# print("Carregando dados na tabela fato sars_brazil...")
-# cursor.execute(query_etl)
-# db_conn.commit()
+### ELT para o DW...
+print("Carregando dados na tabela fato sars_brazil...")
+cursor.execute(query_etl)
+db_conn.commit()
 
 cursor.close()
 db_conn.close()

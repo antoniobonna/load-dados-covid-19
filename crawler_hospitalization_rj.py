@@ -40,9 +40,10 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
     return (db_conn,cursor)
 
 def parsePage(driver,WAIT,stime):
-    element_present = EC.presence_of_element_located((By.XPATH, '//*[@id="page_0"]/div/div/div/div/div/div/iframe'))
+    element_present = EC.presence_of_element_located((By.XPATH, '//iframe'))
     WebDriverWait(driver, WAIT).until(element_present)
-    iframe = driver.find_element_by_xpath('//*[@id="page_0"]/div/div/div/div/div/div/iframe')
+    #iframe = driver.find_element_by_xpath('//*[@id="page_0"]/div/div/div/div/div/div/iframe')
+    iframe = driver.find_element_by_xpath('//iframe')
     driver.switch_to.frame(iframe)
     sleep(stime)
     bs_page = bs(driver.page_source, 'html.parser')
