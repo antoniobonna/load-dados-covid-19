@@ -8,7 +8,7 @@ Created on Thu Nov  7 01:51:25 2019
 import os
 from openpyxl import workbook #pip install openpyxl
 from openpyxl import load_workbook
-#from openpyxl.styles import NamedStyle, Font, Alignment, Color
+from openpyxl.styles import PatternFill, Font
 import psycopg2
 import credentials
 
@@ -35,8 +35,10 @@ query_usa_states = '''SELECT "#", state, cases, total_rate, population_rate, dea
 	FROM covid_19_dw.vw_usa_states ORDER BY 1 LIMIT 20'''
 
 query_local_occupation = '''SELECT CASE WHEN local = 'Rio Grande do Sul' THEN 'Rio Grande do Sul**'
-	WHEN local = 'São Paulo - SP' THEN 'São Paulo - SP*' ELSE local END as local, 
-	bed_number, inpatients, occupation, inpatients_growth
+	WHEN local = 'São Paulo - SP' THEN 'São Paulo - SP*'
+    WHEN local in ('Ceará','Rondônia') THEN CONCAT(local,'***')
+    ELSE local END as local, 
+	bed_number, inpatients, occupation, inpatients_growth, status
 	FROM covid_19_dw.vw_local_occupation ORDER BY occupation DESC'''
 
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
@@ -100,6 +102,15 @@ result = [item for item in cursor.fetchall()]
 for i in range(len(result)):
     for j in range(len(result[i])):
         sheet.cell(row = i+2, column = j+1).value = result[i][j]
+        if result[i][j] == 'Sob Controle':
+            # sheet.cell(row = i+2, column = j+1).fill = PatternFill(start_color="70AD47", fill_type = "solid")
+            sheet.cell(row = i+2, column = j+1).font = Font(color="548235", bold=True)
+        elif result[i][j] == 'Alerta':
+            # sheet.cell(row = i+2, column = j+1).fill = PatternFill(start_color="FFD966", fill_type = "solid")
+            sheet.cell(row = i+2, column = j+1).font = Font(color="FFC000", bold=True)
+        elif result[i][j] == 'Caos':
+            # sheet.cell(row = i+2, column = j+1).fill = PatternFill(start_color="FF5050", fill_type = "solid")
+            sheet.cell(row = i+2, column = j+1).font = Font(color="FF5050", bold=True)
 
 wb.save(outdir+file)
 wb.close()

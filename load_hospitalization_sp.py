@@ -43,9 +43,12 @@ def findPDF(url):
 def parsePDF(pdf_url,pdf,current_date):
     try:
         for i in range(3,6):
-            df = tabula.read_pdf(pdf_url,pages = i, area=(472.162,6.75,725.287,538.65))
-            if df:
-                return df[0]
+            try:
+                df = tabula.read_pdf(pdf_url,pages = i, area=(472.162,6.75,725.287,538.65))
+                if df:
+                    return df[0]
+            except:
+                pass
     except:
         for suffix in suffixes:
             try:
@@ -67,7 +70,7 @@ df.columns = ['key','value']
 
 hospitalizated = int(df[df['key'].str.match("Internados na Rede Municipal") == True].iloc[0]['value'].replace('.',''))
 icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['value'].replace('.',''))
-icu_rate = int(df[df['key'].str.match("Taxa de Ocupação Geral de UTI") == True].iloc[0]['value'].replace('%',''))/100
+icu_rate = int(df[df['key'].str.contains("Taxa de Ocupação") == True].iloc[0]['value'].replace('%',''))/100
 
 icu_beds = round(icu/icu_rate)
 

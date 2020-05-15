@@ -53,7 +53,7 @@ def getDate(driver):
 def parseHTMLTable(driver):
     element_present = EC.presence_of_element_located((By.CLASS_NAME, 'q-table'))
     WebDriverWait(driver, WAIT).until(element_present)
-    table = driver.find_element_by_xpath('//div[contains(text(),"Leitos exclusivos para COVID-19")]/parent::div/parent::div/parent::div//div[@class="q-table__middle scroll"]').get_attribute('innerHTML')
+    table = driver.find_element_by_xpath('//div[contains(text(),"Leitos exclusivos para COVID-19")]/ancestor::node()[3]//div[@class="q-table__middle scroll"]').get_attribute('innerHTML')
     df_list = pd.read_html(table)
 
     return df_list[0]

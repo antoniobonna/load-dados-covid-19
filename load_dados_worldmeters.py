@@ -19,7 +19,7 @@ def parseHtmlTable(url):
     df_list = pd.read_html(html)
     table = df_list[1]
     df = table[table['Country,Other'] != 'World'][:-1]
-    df = df[df.columns[:12]]
+    df = df[df.columns[1:13]]
 
     df.columns = headers
     df = df.copy()
