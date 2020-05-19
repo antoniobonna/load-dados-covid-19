@@ -12,7 +12,7 @@ from openpyxl.styles import PatternFill, Font
 import psycopg2
 import credentials
 
-countries = ['Brazil','United States','Italy','Spain','United Kingdom','Germany','France','Russia','Turkey']
+countries = ['Brazil','United States','Italy','Spain','United Kingdom','Germany','France','Russia']
 file = 'tabelas_email.xlsx'
 indir = '/home/ubuntu/dump/dados_covid_19/'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/'
@@ -30,9 +30,6 @@ query_brazil_states = '''SELECT "#", state, cases, total_rate, population_rate, 
 
 query_brazil_cities = '''SELECT "#", city, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
 	FROM covid_19_dw.vw_brazil_cities ORDER BY 1 LIMIT 20'''
-
-query_usa_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
-	FROM covid_19_dw.vw_usa_states ORDER BY 1 LIMIT 20'''
 
 query_local_occupation = '''SELECT CASE WHEN local = 'Rio Grande do Sul' THEN 'Rio Grande do Sul**'
 	WHEN local = 'São Paulo - SP' THEN 'São Paulo - SP*'
@@ -79,15 +76,6 @@ for i in range(len(result)):
 sheet = wb['Brazil Cities']
 
 cursor.execute(query_brazil_cities)
-result = [item for item in cursor.fetchall()]
-
-for i in range(len(result)):
-    for j in range(len(result[i])):
-        sheet.cell(row = i+2, column = j+1).value = result[i][j]
-
-sheet = wb['USA States']
-
-cursor.execute(query_usa_states)
 result = [item for item in cursor.fetchall()]
 
 for i in range(len(result)):

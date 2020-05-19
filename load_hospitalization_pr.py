@@ -4,7 +4,7 @@ from datetime import date, timedelta
 import credentials
 import psycopg2
 from subprocess import call
-import requests
+from requests import Session
 from bs4 import BeautifulSoup as bs
 
 ### variaveis
@@ -15,6 +15,9 @@ city_local = 'Paraná'
 current_date = date.today()-timedelta(days=1)
 url = 'http://www.saude.pr.gov.br/modules/conteudo/conteudo.php?conteudo=3507'
 str_date = current_date.strftime('%d/%m/%Y')
+tor_file = '/home/ubuntu/scripts/load-dados-covid-19/tor_port'
+session = Session()
+session.proxies = {'http': 'socks5://127.0.0.1:9050'}
 
 def _Postgres(DATABASE, USER, HOST, PASSWORD):
     ### conecta no banco de dados
@@ -25,7 +28,7 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
     return (db_conn,cursor)
 
 def findPDFLink(url,str_date):
-    page = requests.get(url)
+    page = session.get(url)
     bs_page = bs(page.content, 'html.parser')
     boxes = [item.find('a').get('href') for item in bs_page.find_all('strong') if str_date in item.text]
     if boxes:
@@ -34,11 +37,17 @@ def findPDFLink(url,str_date):
 
 def parseDF(pdf_file):
     import tabula
+    from os import remove
     headers = ['region','icu_beds','icu','icu_rate','nursery_beds', 'nursery', 'nursery_rate']
+    _file = pdf_file.split('/')[-1]
+
+    response = session.get(pdf_file)
+    with open(_file, 'wb') as f:
+        f.write(response.content)
 
     for i in range(3,10):
         try:
-            df = tabula.read_pdf(pdf_file, pages = i, area=(239.116,0.744,751.559,592.025), silent=True)[-1]
+            df = tabula.read_pdf(_file, pages = i, area=(239.116,0.744,751.559,592.025), silent=True)[0]
             df = df.dropna(axis=1, how='all')
             df = df[df[df.columns[0]] == 'TOTAL']
             df = df[list(df)[:7]]
@@ -51,6 +60,7 @@ def parseDF(pdf_file):
         except:
             pass
         else:
+            remove(_file)
             return (icu,inpatients,icu_beds,nursery_beds)
 
 def insertDB(db_conn,cursor,query):
@@ -59,6 +69,7 @@ def insertDB(db_conn,cursor,query):
     db_conn.commit()
 
 def main():
+    call(f'tor -f {tor_file} --quiet',shell=True)
     pdf_file = findPDFLink(url,str_date)
 
     if pdf_file:

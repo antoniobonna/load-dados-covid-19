@@ -34,14 +34,16 @@ def findExcelLink(url,str_date):
 def findColumns(df): ### acha colunas onde tem informações de leitos
     headers = list(df)
     for i,header in enumerate(headers):
-        if not df[df[header].astype(str).str.match("CAPITAL*") == True].empty:
+        if not df[df[header].astype(str).str.match("GRANDE ILHA*") == True].empty:
             return (headers[i],headers[i+1])
 
 def splitDF(header1,header2,df): ### divide dataframes em capital e municipio
     df = df[[header1,header2]]
     df = df[df[header1].notna()].reset_index(drop=True) ### remove linhas com valores nulos
-    capital_idx = df.index[df[header1] == 'CAPITAL*'].tolist()[0] ### acha índice
-    municipio_idx = df.index[df[header1] == 'INTERIOR*'].tolist()[0]
+    #capital_idx = df.index[df[header1] == 'CAPITAL*'].tolist()[0] ### acha índice
+    capital_idx = df.index[df[header1] == 'GRANDE ILHA*'].tolist()[0] ### acha índice
+    #municipio_idx = df.index[df[header1] == 'INTERIOR*'].tolist()[0]
+    municipio_idx = df.index[df[header1] == 'DEMAIS REGIÕES*'].tolist()[0]
     df_capital = df[capital_idx:municipio_idx]
     df_capital = df_capital[df_capital[header2].notna()]
     df_municipio = df[municipio_idx:]

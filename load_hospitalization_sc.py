@@ -72,8 +72,8 @@ def main():
         query = f"INSERT INTO {table_icu} VALUES ('{str(current_date)}','{state_local}',NULL,{icu})"
         insertDB(db_conn,cursor,query)
 
-        query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{state_local}','ICU',{icu_beds})"
-        insertDB(db_conn,cursor,query)
+        # query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{state_local}','ICU',{icu_beds})"
+        # insertDB(db_conn,cursor,query)
 
         cursor.close()
         db_conn.close()
@@ -81,7 +81,7 @@ def main():
 
         ### VACUUM ANALYZE
         call('psql -d torkcapital -c "VACUUM ANALYZE '+table_icu+'";',shell=True)
-        call('psql -d torkcapital -c "VACUUM ANALYZE '+table_beds+'";',shell=True)
+        #call('psql -d torkcapital -c "VACUUM ANALYZE '+table_beds+'";',shell=True)
 
     else:
         raise ValueError('No data for ' + str(current_date))

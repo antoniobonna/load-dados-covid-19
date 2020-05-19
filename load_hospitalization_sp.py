@@ -44,7 +44,7 @@ def parsePDF(pdf_url,pdf,current_date):
     try:
         for i in range(3,6):
             try:
-                df = tabula.read_pdf(pdf_url,pages = i, area=(472.162,6.75,725.287,538.65))
+                df = tabula.read_pdf(pdf_url,pages = i, area=(472.162,6.75,725.287,538.65), silent=True)
                 if df:
                     return df[0]
             except:
@@ -54,7 +54,7 @@ def parsePDF(pdf_url,pdf,current_date):
             try:
                 file = pdf.format(current_date.strftime('%d%m%Y'),suffix)
                 print(file)
-                df = tabula.read_pdf(file,pages = 4, area=(472.162,6.75,725.287,538.65))
+                df = tabula.read_pdf(file,pages = 4, area=(472.162,6.75,725.287,538.65), silent=True)
             except:
                 pass
             else:
