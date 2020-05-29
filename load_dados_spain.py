@@ -13,7 +13,7 @@ DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 tablename = 'covid_19.spain_stg'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
 file = 'serie_historica.csv'
-current_date = date.today()-timedelta(days=1)
+current_date = date.today()-timedelta(days=4)
 columns  = ['CCAA','FECHA','PCR+','Hospitalizados','UCI','Fallecidos','Recuperados']
 found = False
 

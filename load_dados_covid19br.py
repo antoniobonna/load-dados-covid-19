@@ -14,9 +14,9 @@ tablename = 'covid_19.brazil_stg'
 outdir = '/home/ubuntu/scripts/load-dados-covid-19/csv/'
 file = 'cases-brazil-states.csv'
 current_date = str(date.today()-timedelta(days=1))
-columns  = ['date','state','totalCases','deaths']
+columns  = ['date','state','totalCases','deaths','recovered','suspects','tests']
 
-#CSV_URL = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-states.csv'
+CSV_URL = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-states.csv'
 
 def parseCSV(url):
     with requests.get(url, stream=True) as r:
@@ -26,7 +26,7 @@ def parseCSV(url):
             writer = csv.DictWriter(ofile, fieldnames=columns,restval='', extrasaction='ignore',delimiter=';')
             found = False
             for row in reader:
-                if row['date'] == current_date and len(row['state']) == 2:
+                if len(row['state']) == 2 and row['date'] == current_date:
                     found = True
                     writer.writerow(row)
 
@@ -54,4 +54,5 @@ def loadData(url):
     ### VACUUM ANALYZE
     call('psql -d torkcapital -c "VACUUM ANALYZE '+tablename+'";',shell=True)
 
-#loadData(CSV_URL)
+if __name__=="__main__":
+    loadData(CSV_URL)

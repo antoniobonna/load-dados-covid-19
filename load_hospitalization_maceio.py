@@ -30,7 +30,8 @@ def findPDFLink(url,str_date):
     boxes = [item.find_all('a') for item in bs_page.select('article p') if str_date in item.text]
     links = [item.get('href') for sublist in boxes for item in sublist if item.get('href').endswith('.pdf')]
     if links:
-        return links[-1]
+        #return links[-1]
+        return links[0]
     return None
 
 def parseDF(pdf_file):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for tinydeal project
+# Scrapy settings for sao_paulo project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,14 +9,14 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'tinydeal'
+BOT_NAME = 'sao_paulo'
 
-SPIDER_MODULES = ['tinydeal.spiders']
-NEWSPIDER_MODULE = 'tinydeal.spiders'
+SPIDER_MODULES = ['sao_paulo.spiders']
+NEWSPIDER_MODULE = 'sao_paulo.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'tinydeal (+http://www.yourdomain.com)'
+#USER_AGENT = 'sao_paulo (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -46,13 +46,13 @@ DEFAULT_REQUEST_HEADERS = {
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'tinydeal.middlewares.TinydealSpiderMiddleware': 543,
+#    'sao_paulo.middlewares.SaoPauloSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'tinydeal.middlewares.TinydealDownloaderMiddleware': 543,
+#    'sao_paulo.middlewares.SaoPauloDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -64,7 +64,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'tinydeal.pipelines.TinydealPipeline': 300,
+#    'sao_paulo.pipelines.SaoPauloPipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -89,3 +89,6 @@ DEFAULT_REQUEST_HEADERS = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FEED_EXPORT_ENCONDING = 'utf-8'
+# LOG_ENABLED = True
+# LOG_LEVEL = 'INFO' # Levels: CRITICAL, ERROR, WARNING, INFO, DEBUG
+# LOG_FILE = 'logfile.log'

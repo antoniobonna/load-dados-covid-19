@@ -48,7 +48,8 @@ def parseDF(pdf_file):
     for i in range(10):
         try:
             page = pdf.pages[i]
-            table = [int(t) for sublist in page.extract_table() for t in sublist if 'Internações\nem UTI' in sublist and t.isdigit()]
+            table = [[x.replace('\n','') for x in sublist] for sublist in page.extract_table()]
+            table = [int(t) for sublist in table for t in sublist if 'Internações em UTI' in sublist and t.isdigit()]
             icu = table[2]
             occupation_rate = [float(w.replace('%','').replace(',','.')) for w in page.extract_text().split() if w.endswith('%')][0]
             icu_beds = round(icu/occupation_rate * 100)

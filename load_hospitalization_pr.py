@@ -56,7 +56,7 @@ def parseDF(pdf_file):
             icu = int(df['icu'].iloc[0])
             inpatients = icu + int(df['nursery'].iloc[0])
             icu_beds = int(df['icu_beds'].iloc[0])
-            nursery_beds = int(df['nursery_beds'].iloc[0])
+            nursery_beds = int(df['nursery_beds'].iloc[0].replace('.',''))
         except:
             pass
         else:

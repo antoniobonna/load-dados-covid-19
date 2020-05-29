@@ -64,13 +64,15 @@ boletim = findBoletimLink(url_mainpage,current_date)
 pdf_url = findPDF(boletim)
 
 df = parsePDF(pdf_url,pdf,current_date)
-if len(df.columns) > 2:
+if len(df.columns) > 4:
     df.drop(df.columns[1], axis=1,inplace=True)
-df.columns = ['key','value']
+#df.columns = ['key','value']
+df.columns = ['key','hospitais_municipais','hospitais_contratualizados','total']
 
-hospitalizated = int(df[df['key'].str.match("Internados na Rede Municipal") == True].iloc[0]['value'].replace('.',''))
-icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['value'].replace('.',''))
-icu_rate = int(df[df['key'].str.contains("Taxa de Ocupação") == True].iloc[0]['value'].replace('%',''))/100
+#hospitalizated = int(df[df['key'].str.match("Internados na Rede Municipal") == True].iloc[0]['value'].replace('.',''))
+hospitalizated = int(df[df['key'].str.match("Internados") == True].iloc[0]['total'].replace('.',''))
+icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['total'].replace('.',''))
+icu_rate = int(df[df['key'].str.contains("Taxa de Ocupação") == True].iloc[0]['total'].replace('%',''))/100
 
 icu_beds = round(icu/icu_rate)
 

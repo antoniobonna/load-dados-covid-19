@@ -25,8 +25,9 @@ query_country = '''SELECT date, cases, new_cases, cases_evolution, deaths, new_d
 	WHERE country = '{}' 
 	ORDER BY date OFFSET 1'''
 
-query_brazil_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
-	FROM covid_19_dw.vw_brazil_states ORDER BY 1 LIMIT 20'''
+query_brazil_states = '''SELECT "#", state, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate, recovered,
+    tests, tests_per_thousand
+    FROM covid_19_dw.vw_brazil_states ORDER BY 1 LIMIT 20'''
 
 query_brazil_cities = '''SELECT "#", city, cases, total_rate, population_rate, deaths, deaths_per_million, death_rate
 	FROM covid_19_dw.vw_brazil_cities ORDER BY 1 LIMIT 20'''
@@ -34,9 +35,18 @@ query_brazil_cities = '''SELECT "#", city, cases, total_rate, population_rate, d
 query_local_occupation = '''SELECT CASE WHEN local = 'Rio Grande do Sul' THEN 'Rio Grande do Sul**'
 	WHEN local = 'São Paulo - SP' THEN 'São Paulo - SP*'
     WHEN local in ('Ceará','Rondônia') THEN CONCAT(local,'***')
+    WHEN local = 'Rio de Janeiro - RJ' THEN 'Rio de Janeiro - RJ****'
+    WHEN local = 'São Paulo' THEN 'São Paulo*****'
+    WHEN local = 'Amazonas' THEN 'Amazonas******'
     ELSE local END as local, 
 	bed_number, inpatients, occupation, inpatients_growth, status
 	FROM covid_19_dw.vw_local_occupation ORDER BY occupation DESC'''
+
+query_lockdown = '''SELECT t.country
+     , t.start_date
+     , t.end_date
+FROM covid_19.lockdown t WHERE country in ('Austria','France','Germany','Italy','Spain','Iran')
+ORDER BY t.country'''
 
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 
@@ -99,6 +109,13 @@ for i in range(len(result)):
         elif result[i][j] == 'Caos':
             # sheet.cell(row = i+2, column = j+1).fill = PatternFill(start_color="FF5050", fill_type = "solid")
             sheet.cell(row = i+2, column = j+1).font = Font(color="FF5050", bold=True)
+
+sheet = wb['Lockdown']
+cursor.execute(query_lockdown)
+result = [item for item in cursor.fetchall()]
+for i in range(len(result)):
+    for j in range(len(result[i])):
+        sheet.cell(row = i+3, column = j+1).value = result[i][j]
 
 wb.save(outdir+file)
 wb.close()

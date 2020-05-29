@@ -53,7 +53,7 @@ VACUUM ANALYZE covid_19_dw.italy;
 \! echo "Carregando dados na tabela fato brazil..."
 
 INSERT INTO covid_19_dw.brazil
-SELECT d.date, s.state_id, confirmados, obitos
+SELECT d.date, s.state_id, confirmados, obitos, recovered, suspects, tests
 	FROM covid_19.brazil_stg f
 	JOIN covid_19_dw.date d ON f.data=d.date
 	JOIN covid_19_dw.state s ON f.estado=s.state_cd AND s.country = 'Brazil';

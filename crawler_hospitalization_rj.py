@@ -56,7 +56,7 @@ def getDate(bs_page):
 def getValuesText(boxes,key):
     for i,box in enumerate(boxes):
         if box.text.strip() == key:
-            return boxes[i+1].text.strip()
+            return boxes[i+1].text.strip().replace('.','')
 
 def main():
     driver = _Chrome(driver_path)

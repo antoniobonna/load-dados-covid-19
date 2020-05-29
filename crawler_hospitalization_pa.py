@@ -51,8 +51,22 @@ def getDate(driver):
     return last_date
 
 def parseHTMLTable(driver):
+    from selenium.webdriver.common.keys import Keys
+    from selenium.common.exceptions import TimeoutException
+
+    html = driver.find_element_by_tag_name('html')
     element_present = EC.presence_of_element_located((By.CLASS_NAME, 'q-table'))
-    WebDriverWait(driver, WAIT).until(element_present)
+    wait = WebDriverWait(driver, 6)
+    count = 0
+
+    while count < 10:
+        html.send_keys(Keys.PAGE_DOWN)
+        try:
+            channel_text = wait.until(element_present)
+            break
+        except TimeoutException:
+            pass
+        count += 1
     table = driver.find_element_by_xpath('//div[contains(text(),"Leitos exclusivos para COVID-19")]/ancestor::node()[3]//div[@class="q-table__middle scroll"]').get_attribute('innerHTML')
     df_list = pd.read_html(table)
 
