@@ -48,7 +48,7 @@ def parseBoletim(link):
     icu_beds = parseNumber(beds.xpath('.//node()[contains(text(),"UTI Estadual")]/text()').get())
     nursery_beds = parseNumber(beds.xpath('.//node()[contains(text(),"Enfermaria Estadual")]/text()').get())
     #icu_beds_aracaju = parseNumber(beds.xpath('.//node()[contains(text(),"UTI Aracaju")]/text()').get())
-    nursery_beds_aracaju = parseNumber(beds.xpath('.//node()[contains(text(),"Enfermaria Aracaju")]/text()').get())
+    nursery_beds_aracaju = parseNumber(beds.xpath('.//node()[contains(text(),"Enfermaria")]/text()').get())
     #icu_beds += icu_beds_aracaju
     nursery_beds += nursery_beds_aracaju
 

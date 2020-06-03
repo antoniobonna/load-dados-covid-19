@@ -27,19 +27,33 @@ class HospitalizationSpider(CrawlSpider):
         TAG_INPATIENTS = ['internad','uti','enfermaria']
         TAG_INPATIENTS2 = ['internaç','uti','enfermaria']
         TAG_OCCUPATION = ['taxa de ocupação','uti','estado']
-        inpatients = occupation = []
+        icu = occupation = []
 
         rows = [t.replace(' %','%').replace('%,','%').replace('%.','%').replace('taxas','taxa').lower() for sublist in selector for t in sublist.xpath('.//text()').extract()]
-        for row in rows:
+        for i,row in enumerate(rows):
             if all(w in row for w in TAG_INPATIENTS) or all(w in row for w in TAG_INPATIENTS2):
-                inpatients = [int(x.replace('.','')) for x in re.findall(r'\d+\.\d{3}',row)]
-                if len(inpatients) > 1:
-                    icu,nursery = inpatients[:2]
+                try:
+                    icu = [int(x.replace('.','')) for x in re.search(r'\d+\.\d+ em uti',row).group().split() if x.replace('.','').isdigit()][0]
+                except:
+                    icu = [int(x.replace('.','')) for x in re.search(r'\d+\.\d+ em unidades de terapia intensiva',row).group().split() if x.replace('.','').isdigit()][0]
+                nursery = [int(x.replace('.','')) for x in re.search(r'\d+\.\d+ em enfermaria',row).group().split() if x.replace('.','').isdigit()][0]
             if all(w in row for w in TAG_OCCUPATION):
-                occupation = [float(x.replace(',','.').replace('%','')) for x in row.split() if x.endswith('%')]
-                if occupation:
-                    icu_rate_state = occupation[0]
-        if inpatients and occupation:
+                try:
+                    occupation = [float(x.replace(',','.').replace('%','')) for x in row.split() if x.endswith('%')]
+                    if occupation[0] < occupation[1]:
+                        icu_rate_state = occupation[0]
+                    else:
+                        icu_rate_state = occupation[1]
+                except:
+                    for j in range(1,len(rows) - i):
+                        occupation = [float(x.replace(',','.').replace('%','')) for x in rows[i+j].split() if x.endswith('%')]
+                        if len(occupation) == 2:
+                            if occupation[0] < occupation[1]:
+                                icu_rate_state = occupation[0]
+                            else:
+                                icu_rate_state = occupation[1]
+                            break
+        if icu and occupation:
             return (icu,nursery,icu_rate_state)
         return None
 

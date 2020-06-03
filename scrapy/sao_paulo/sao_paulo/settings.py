@@ -89,6 +89,6 @@ DEFAULT_REQUEST_HEADERS = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FEED_EXPORT_ENCONDING = 'utf-8'
-# LOG_ENABLED = True
-# LOG_LEVEL = 'INFO' # Levels: CRITICAL, ERROR, WARNING, INFO, DEBUG
-# LOG_FILE = 'logfile.log'
+LOG_ENABLED = True
+LOG_LEVEL = 'INFO' # Levels: CRITICAL, ERROR, WARNING, INFO, DEBUG
+LOG_FILE = 'logfile.log'

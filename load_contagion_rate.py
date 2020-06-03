@@ -1,110 +1,100 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date, timedelta
 import credentials
-import psycopg2
 from subprocess import call
-import requests
-from bs4 import BeautifulSoup as bs
+from sqlalchemy import create_engine
 import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 
 ### variaveis
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
-table_icu = 'covid_19.local_hospitalization'
-table_beds = 'covid_19.local_beds'
-state_local = 'Maranhão'
-city_local = 'São Luís - MA'
-current_date = date.today()-timedelta(days=1)
-url_mainpage = 'http://www.saude.ma.gov.br/boletins-covid-19/'
-str_date = current_date.strftime('BOLETIM %d/%m')
+engine = create_engine("postgresql+psycopg2://{}:{}@{}/{}".format(USER,PASSWORD,HOST,DATABASE))
+schema = 'covid_19'
+table_name = 'contagion_rate'
+driver_path = '/home/ubuntu/scripts/load-dados-reclame-aqui/chromedriver'
+url = 'https://covid19analytics.com.br/painel-de-resultados/'
+WAIT = 60
 
-def _Postgres(DATABASE, USER, HOST, PASSWORD):
-    ### conecta no banco de dados
-    db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))
-    cursor = db_conn.cursor()
-    print('Connected to the database')
-    return (db_conn,cursor)
+def _Chrome(driver_path):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("start-maximized")
+    driver = webdriver.Chrome(executable_path=driver_path, options=chrome_options)
+    return driver
 
-def findExcelLink(url,str_date):
-    page = requests.get(url)
-    bs_page = bs(page.content, 'html.parser')
-    excel_file = [item for item in bs_page.find_all('a') if str_date in item.text][0].get('href')
-    return excel_file
+def findLink(driver,WAIT):
+    from time import sleep
 
-def findColumns(df): ### acha colunas onde tem informações de leitos
-    headers = list(df)
-    for i,header in enumerate(headers):
-        if not df[df[header].astype(str).str.match("GRANDE ILHA*") == True].empty:
-            return (headers[i],headers[i+1])
+    element_present = EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe'))
+    WebDriverWait(driver, WAIT).until(element_present)
+    sleep(5)
+    element_present = EC.visibility_of_element_located((By.XPATH, '//*[@class="nav nav-tabs"]/li[3]'))
+    tab = WebDriverWait(driver, WAIT).until(element_present).click()
+    element_present = EC.visibility_of_element_located((By.XPATH, '//button[@class="btn btn-box-tool"]'))
+    button = WebDriverWait(driver, WAIT).until(element_present).click()
+    element_present = EC.visibility_of_element_located((By.XPATH, '//a[@id="download_planilha_Rts"]'))
+    link = WebDriverWait(driver, WAIT).until(element_present).get_attribute('href')
 
-def splitDF(header1,header2,df): ### divide dataframes em capital e municipio
-    df = df[[header1,header2]]
-    df = df[df[header1].notna()].reset_index(drop=True) ### remove linhas com valores nulos
-    #capital_idx = df.index[df[header1] == 'CAPITAL*'].tolist()[0] ### acha índice
-    capital_idx = df.index[df[header1] == 'GRANDE ILHA*'].tolist()[0] ### acha índice
-    #municipio_idx = df.index[df[header1] == 'INTERIOR*'].tolist()[0]
-    municipio_idx = df.index[df[header1] == 'DEMAIS REGIÕES*'].tolist()[0]
-    imperatriz_idx = df.index[df[header1] == 'IMPERATRIZ'].tolist()[0]
-    df_capital = df[capital_idx:municipio_idx]
-    df_capital = df_capital[df_capital[header2].notna()]
-    df_municipio = df[municipio_idx:imperatriz_idx]
-    df_municipio = df_municipio[df_municipio[header2].notna()]
-    df_imperatriz = df[imperatriz_idx:]
-    df_imperatriz = df_imperatriz[df_imperatriz[header2].notna()]
-    return (df_capital,df_municipio,df_imperatriz)
+    return link
 
-def getValuesDF(data,string):
-    data.columns = ['key','value']
-    value = data[data['key'] == string].iloc[0]['value']
-    return value
+def parseDF(df):
+    new_df = pd.DataFrame()
+    for idx, row in df.iterrows():
+        for column in list(df)[1:]:
+            new_row = {
+                'date': row['Data'],
+                'uf': column.replace('Brasil','Brazil').replace('_',' '),
+                'rt': row[column]
+            }
+            new_df = new_df.append(new_row, ignore_index=True)
+    new_df = new_df[['date','uf','rt']]
 
-def parseDF(df_capital,df_municipio,df_imperatriz):
-    icu_capital = getValuesDF(df_capital,'Leitos ocupados UTI')
-    inpatients_capital = getValuesDF(df_capital,'Leitos ocupados') + icu_capital
-    icu_beds_capital = getValuesDF(df_capital,'Total de leitos UTI')
-    nursery_beds_capital = getValuesDF(df_capital,'Total de leitos')
+    return new_df
 
-    icu_state = getValuesDF(df_municipio,'Leitos ocupados UTI') + getValuesDF(df_imperatriz,'Leitos ocupados UTI') + icu_capital
-    inpatients_state = getValuesDF(df_municipio,'Leitos ocupados') + getValuesDF(df_imperatriz,'Leitos ocupados') + icu_state + inpatients_capital - icu_capital
-    icu_beds_state = getValuesDF(df_municipio,'Total de leitos UTI') + getValuesDF(df_imperatriz,'Total de leitos UTI') + icu_beds_capital
-    nursery_beds_state = getValuesDF(df_municipio,'Total de leitos') + getValuesDF(df_imperatriz,'Total de leitos') + nursery_beds_capital
+def parseBrazilDF(df):
+    new_df = pd.DataFrame()
+    for idx, row in df.iterrows():
+        for column in list(df)[1:]:
+            if column.startswith('Brasil_IDH'):
+                new_row = {
+                    'date': row['Data'],
+                    'uf': column.replace('Brasil','Brazil').replace('_',' '),
+                    'rt': row[column]
+                }
+                new_df = new_df.append(new_row, ignore_index=True)
+    new_df = new_df[['date','uf','rt']]
 
-    return (icu_capital,inpatients_capital,icu_beds_capital,nursery_beds_capital,icu_state,inpatients_state,icu_beds_state,nursery_beds_state)
-
-def insertDB(db_conn,cursor,query):
-    print(query)
-    cursor.execute(query)
-    db_conn.commit()
+    return new_df
 
 def main():
-    excel_file = findExcelLink(url_mainpage,str_date)
-    df = pd.read_excel(excel_file,sheet_name=0)
-    df = df.dropna(axis=1, how='all') ### deleta as colunas com todos valores nulos
-    header1,header2 = findColumns(df)
-    df_capital,df_municipio,df_imperatriz = splitDF(header1,header2,df)
-    icu_capital,inpatients_capital,icu_beds_capital,nursery_beds_capital,icu_state,inpatients_state,icu_beds_state,nursery_beds_state = parseDF(df_capital,df_municipio,df_imperatriz)
+    driver = _Chrome(driver_path)
+    driver.get(url)
+    csv_link = findLink(driver,WAIT)
+    driver.quit()
 
-    db_conn,cursor = _Postgres(DATABASE, USER, HOST, PASSWORD)
-    query = f"INSERT INTO {table_icu} VALUES ('{str(current_date)}','{city_local}',{inpatients_capital},{icu_capital})"
-    insertDB(db_conn,cursor,query)
-    query = f"INSERT INTO {table_icu} VALUES ('{str(current_date)}','{state_local}',{inpatients_state},{icu_state})"
-    insertDB(db_conn,cursor,query)
-    
-    query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{city_local}','ICU',{icu_beds_capital})"
-    insertDB(db_conn,cursor,query)
-    query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{city_local}','Nursery',{nursery_beds_capital})"
-    insertDB(db_conn,cursor,query)
-    query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{state_local}','ICU',{icu_beds_state})"
-    insertDB(db_conn,cursor,query)
-    query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{state_local}','Nursery',{nursery_beds_state})"
-    insertDB(db_conn,cursor,query)
+    db_conn = engine.raw_connection()
+    cursor = db_conn.cursor()
+    df = pd.read_excel(csv_link, sheet_name = 'Com previsao')
+    brazil_df = pd.read_excel(csv_link, sheet_name = 'Semana anterior')
+    df = parseDF(df)
+    brazil_df = parseBrazilDF(brazil_df)
 
+    cursor.execute("TRUNCATE {}.{}".format(schema,table_name))
+    db_conn.commit()
+    df.to_sql(table_name,engine,schema=schema,index=False,if_exists='append')
+    brazil_df.to_sql(table_name,engine,schema=schema,index=False,if_exists='append')
     cursor.close()
     db_conn.close()
 
     ### VACUUM ANALYZE
-    call('psql -d torkcapital -c "VACUUM ANALYZE '+table_icu+'";',shell=True)
-    call('psql -d torkcapital -c "VACUUM ANALYZE '+table_beds+'";',shell=True)
+    call('psql -d torkcapital -c "VACUUM ANALYZE {}.{}"'.format(schema,table_name),shell=True)
 
 if __name__=="__main__":
     main()

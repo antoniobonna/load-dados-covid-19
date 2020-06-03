@@ -227,3 +227,36 @@ SELECT d.date, l.local_id, b.bed_id, hospitalized
 	AND (d.date, l.local_id, b.bed_id) NOT IN (SELECT date, local_id, bed_id FROM covid_19_dw.hospitalization);
 
 VACUUM ANALYZE covid_19_dw.hospitalization;
+
+----------------------------------------------------------------------------
+
+-- covid_19_dw.contagion_rate
+
+\! echo "Carregando dados na tabela fato contagion_rate..."
+
+TRUNCATE covid_19_dw.contagion_rate;
+INSERT INTO covid_19_dw.contagion_rate
+SELECT d.date, s.state_id, f.rt
+	FROM covid_19.contagion_rate f
+	JOIN covid_19_dw.date d ON f.date=d.date
+	JOIN covid_19_dw.state s ON f.uf=s.state_cd AND s.country = 'Brazil'
+	WHERE not rt is null;
+	--AND (d.date, s.state_id) NOT IN (SELECT date, state_id FROM covid_19_dw.contagion_rate);
+
+VACUUM ANALYZE covid_19_dw.contagion_rate;
+
+----------------------------------------------------------------------------
+
+-- covid_19_dw.brazil_traffic_state
+
+\! echo "Carregando dados na tabela fato brazil_traffic_state..."
+
+INSERT INTO covid_19_dw.brazil_traffic_state
+SELECT d.date, s.state_id, f.tcp
+	FROM covid_19.traffic_state f
+	JOIN covid_19_dw.date d ON f.date=d.date
+	JOIN covid_19_dw.state s ON f.state=s.state AND s.country = 'Brazil'
+	WHERE not tcp is null 
+	AND (d.date, s.state_id) NOT IN (SELECT date, state_id FROM covid_19_dw.brazil_traffic_state);
+
+VACUUM ANALYZE covid_19_dw.brazil_traffic_state;

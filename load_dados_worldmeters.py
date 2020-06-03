@@ -4,6 +4,8 @@ from sqlalchemy import create_engine
 from subprocess import call
 import requests
 from datetime import date,timedelta
+import re
+from parsel import Selector
 
 ### definicoes de variaveis
 DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
@@ -15,13 +17,22 @@ headers = ['country', 'total_cases', 'new_cases', 'total_deaths', 'new_deaths', 
 current_date = date.today()-timedelta(days=1)
 
 def parseHtmlTable(url):
-    html = requests.get(url).content
-    df_list = pd.read_html(html)
-    table = df_list[1]
+    html = requests.get(url).text
+    selector = Selector(html)
+    table = selector.xpath('//table[@id="main_table_countries_yesterday"]/parent::node()').get()
+    table = re.sub('table id="main_table_countries_yesterday" .*>','table id="main_table_countries_yesterday">',table)
+    df_list = pd.read_html(table)
+    table = df_list[0]
     df = table[table['Country,Other'] != 'World'][:-1]
-    df = df[df.columns[1:13]]
 
-    df.columns = headers
+    if 'NewRecovered' in list(df):
+        headers.insert(6,'new_recovered')
+        df = df[df.columns[1:14]]
+        df.columns = headers
+        df = df.drop('new_recovered', 1)
+    else:
+        df = df[df.columns[1:13]]
+        df.columns = headers
     df = df.copy()
     df['country'] = df['country'].str.replace('USA','United States').replace('UK','United Kingdom').replace('S. Korea','South Korea').replace('UAE','United Arab Emirates').replace('CAR','Central African Republic').replace('Turks and Caicos','Turks and Caicos Islands').replace('Vatican City','Vatican').replace('North Macedonia','Macedonia').replace('DRC','Democratic Republic of Congo').replace('Czechia','Czech Republic')
     df['new_cases'] = df['new_cases'].str.replace('+','')

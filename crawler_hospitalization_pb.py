@@ -74,7 +74,7 @@ def parseCSV(indir):
     _file = [f for f in os.listdir(indir) if f.endswith('.csv')][0]
 
     with open(indir+_file, 'r', encoding="utf-8") as ifile:
-        reader = csv.reader(ifile)
+        reader = csv.reader(ifile, delimiter=';')
         header = next(reader, None)  ### Pula o cabeçalho
         for row in reader:
             if row[0] == 'Disponível':

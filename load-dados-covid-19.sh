@@ -47,7 +47,7 @@ LoadDW()
 }
 export -f LoadDW
 
-### Spider
+### Spyder
 
 echo -e "$(horario): Inicio dos crawlers.\n-\n"
 
@@ -64,7 +64,7 @@ ListaArquivos="load_dados_worldmeters.py load_dados_us.py load_dados_brazil.py l
 load_world_in_data.py load_dados_healthcare.py load_brazil_cities.py load_us_cities.py crawler_hospitalization_rj.py load_hospitalization_sp.py \
 load_hospitalization_pe.py load_hospitalization_ma.py crawler_hospitalization_pa.py crawler_hospitalization_pb.py load_hospitalization_al.py \
 load_hospitalization_maceio.py load_hospitalization_se.py load_hospitalization_pr.py load_hospitalization_sc.py load_hospitalization_ro.py \
-load_beds_sus.py load_hospitalization_es.py load_hospitalization_ba.py scrapper_occupation_rj.py"
+load_beds_sus.py load_hospitalization_es.py load_hospitalization_ba.py scrapper_occupation_rj.py load_contagion_rate.py load_traffic_change.py"
 
 TotalTabelas=$(echo $ListaArquivos | wc -w)
 parallel -k stagingDados {}\; 'echo -e "\nProgress: {#}/'$TotalTabelas'\n"' ::: $ListaArquivos

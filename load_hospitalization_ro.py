@@ -25,8 +25,10 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
 
 def getDate(df):
     size = len(df) - 1
-    df = df = df[size:]
+    df = df[size:]
     last_date = df[df.columns[0]].iloc[0]
+    if not last_date:
+        last_date = df[df.columns[1]].iloc[0]
 
     return last_date
 

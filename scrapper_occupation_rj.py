@@ -25,7 +25,8 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
 def findLink(url):
     page = requests.get(url)
     bs_page = bs(page.content, 'html.parser')
-    boxes = [item.find('a').get('href') for item in bs_page.find_all('div',{'class':'wrapper-categories'}) if 'atualiza número de leitos' in item.find('h3').text]
+    boxes = [   item.find('a').get('href') for item in bs_page.find_all('div',{'class':'wrapper-categories'}) 
+                if 'atualiza' in item.find('h3').text.lower() and 'número de leitos' in item.find('h3').text.lower()]
     return boxes[0]
 
 def getDate(bs_page):
@@ -38,6 +39,7 @@ def getDate(bs_page):
 def parseList(list):
     TAG_SUS = ['SUS','internados','UTI']
     TAG_QUEUE = ['fila','aguardando transferência','UTI']
+    queue = queue_icu = 'Null'
     for phrase in list:
         if all(w in phrase for w in TAG_SUS):
             inpacients, icu = [int(w.replace('.','')) for w in phrase.split() if w.replace('.','').isdigit()]
@@ -66,6 +68,8 @@ def main():
     if str_date == current_date:
 
         list = [item.text for item in bs_page.find_all('p')]
+        if len(list) < 3:
+            list = [item.text for item in bs_page.find_all('span')]
         icu_beds,nursery_beds,queue,queue_icu = parseList(list)
 
         db_conn,cursor = _Postgres(DATABASE, USER, HOST, PASSWORD)

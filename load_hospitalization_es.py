@@ -41,11 +41,10 @@ def parseTable(selector):
     header.insert(0,'BED')
     df = df[1:]
     df.columns = header
-    nursery_beds = df[df['BED'] == 'Enfermaria'].iloc[0]['TOTAL DE LEITOS']
+    nursery_beds = df[df['BED'].str.contains("Enfermaria") == True].iloc[0]['TOTAL DE LEITOS']
     icu_beds = df[df['BED'] == 'UTI'].iloc[0]['TOTAL DE LEITOS']
     icu = df[df['BED'] == 'UTI'].iloc[0]['LEITOS OCUPADOS']
     inpatients = df[df['BED'] == 'Total de Leitos Covid-19'].iloc[0]['LEITOS OCUPADOS']
-
     return (icu,inpatients,icu_beds,nursery_beds)
 
 def insertDB(db_conn,cursor,query):

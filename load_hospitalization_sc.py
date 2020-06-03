@@ -29,6 +29,10 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
 def findPDFLink(url,str_date):
     page = requests.get(url)
     selector = Selector(text=page.text)
+    if str_date.split()[0] == '01':
+        str_date = '1º ' + str_date.partition(' ')[-1]
+    else:
+        str_date = str(int(str_date.split()[0])) + ' ' + str_date.partition(' ')[-1]
     new_boletim = next((s for s in selector.xpath('//h4/a/text()').extract() if str_date in s), None)
     if new_boletim:
         pdf_file = selector.xpath(f'//h4/a[text()="{new_boletim}"]/ancestor::node()[2]//a[contains(@href,".pdf")]/@href').get()

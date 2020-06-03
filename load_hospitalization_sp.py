@@ -70,11 +70,23 @@ if len(df.columns) > 4:
 df.columns = ['key','hospitais_municipais','hospitais_contratualizados','total']
 
 #hospitalizated = int(df[df['key'].str.match("Internados na Rede Municipal") == True].iloc[0]['value'].replace('.',''))
-hospitalizated = int(df[df['key'].str.match("Internados") == True].iloc[0]['total'].replace('.',''))
-icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['total'].replace('.',''))
-icu_rate = int(df[df['key'].str.contains("Taxa de Ocupação") == True].iloc[0]['total'].replace('%',''))/100
+if df[df['key'].str.match("Internados") == True].iloc[0]['total'].replace('.','') != '-':
+    hospitalizated = int(df[df['key'].str.match("Internados") == True].iloc[0]['total'].replace('.',''))
+else:
+    hospitalizated = int(df[df['key'].str.match("Internados") == True].iloc[0]['hospitais_municipais'].replace('.',''))
 
-icu_beds = round(icu/icu_rate)
+if df[df['key'].str.match("Internados em UTI") == True].iloc[0]['total'].replace('.','') != '-':
+    icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['total'].replace('.',''))
+else:
+    icu = int(df[df['key'].str.match("Internados em UTI") == True].iloc[0]['hospitais_municipais'].replace('.',''))
+
+if df[df['key'].str.match("Leitos UTI COVID em operação") == True].iloc[0]['total'].replace('.','') != '-':
+    icu_beds = int(df[df['key'].str.match("Leitos UTI COVID em operação") == True].iloc[0]['total'].replace('.',''))
+else:
+    icu_beds = int(df[df['key'].str.match("Leitos UTI COVID em operação") == True].iloc[0]['hospitais_municipais'].replace('.',''))
+
+# icu_rate = int(df[df['key'].str.contains("Taxa de Ocupação") == True].iloc[0]['total'].replace('%',''))/100
+# icu_beds = round(icu/icu_rate)
 
 ### conecta no banco de dados
 db_conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(DATABASE, USER, HOST, PASSWORD))

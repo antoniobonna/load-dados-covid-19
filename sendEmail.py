@@ -81,13 +81,19 @@ def parsePDF(_file):
                 'Ceara_Interior_2.jpg',
                 'Amazonas_Interior.jpg',
                 'Amazonas_Interior_2.jpg',
-                'Amazonas.jpg']
+                'Amazonas.jpg',
+                'Brazil_RT.jpg',
+                'Traffic_change.jpg',
+                'Para.jpg',
+                'Para_Occupation.jpg',
+                'Para_Interior.jpg',
+                'Para_Interior_2.jpg']
     pages = convert_from_path(_file,size=1300)
 
     for page,image in zip(pages,image_list):
         width, height = page.size
         if image in ('Rio_de_Janeiro.jpg','Sao_Paulo.jpg','Pernambuco.jpg','Ceara.jpg','Sao_Luis.jpg','Maranhao.jpg','Maceio.jpg','Alagoas.jpg',
-                    'Sergipe.jpg','Rio_Grande_do_Sul.jpg','Parana.jpg','Rio_de_Janeiro_SUS.jpg','Sao_Paulo_State.jpg','Amazonas.jpg'):
+                    'Sergipe.jpg','Rio_Grande_do_Sul.jpg','Parana.jpg','Rio_de_Janeiro_SUS.jpg','Sao_Paulo_State.jpg','Amazonas.jpg','Para.jpg'):
             page = page.crop((0, 135, width-2, height-20))
      
         elif image in ( 'Sao_Paulo_Occupation.jpg','Pernambuco_Occupation.jpg','Ceara_Occupation.jpg','Sao_Luis_Occupation.jpg',
@@ -96,7 +102,9 @@ def parsePDF(_file):
                         'Deaths_State_3.jpg','Deaths_State_4.jpg','Rio_de_Janeiro_Occupation.jpg','Rio_de_Janeiro_Fila.jpg','Cities_3.jpg',
                         'Cities_4.jpg','Sao_Paulo_State_Occupation.jpg','Top_10_Cases.jpg','Top_10_Deaths.jpg','Cases_After_Lockdown.jpg',
                         'Deaths_After_Lockdown.jpg','Sao_Paulo_Interior.jpg','Sao_Paulo_Interior_2.jpg','Rio_de_Janeiro_Interior.jpg',
-                        'Rio_de_Janeiro_Interior_2.jpg','Ceara_Interior.jpg','Ceara_Interior_2.jpg','Amazonas_Interior.jpg','Amazonas_Interior_2.jpg'):
+                        'Rio_de_Janeiro_Interior_2.jpg','Ceara_Interior.jpg','Ceara_Interior_2.jpg','Amazonas_Interior.jpg',
+                        'Amazonas_Interior_2.jpg','Brazil_RT.jpg','Traffic_change.jpg','Para_Occupation.jpg','Para_Interior.jpg',
+                        'Para_Interior_2.jpg'):
             page = page.crop((0, 22, width, height-20))
             
         elif image in ('Hapvida_3.jpg'):
@@ -212,9 +220,9 @@ if __name__=="__main__":
             _Image('Amazonas_Interior.jpg',images),
             _Image('Amazonas_Interior_2.jpg',images),
             
-            _Title('ÍNDICE DE ISOLAMENTO SOCIAL'),
-            '<p>[Visao Geral]</p>'
-            '<a href="https://www.inloco.com.br/covid-19">https://www.inloco.com.br/covid-19</a>',
+            _SubSubTitle('ESTADO DO PARA'),
+            _Image('Para_Interior.jpg',images),
+            _Image('Para_Interior_2.jpg',images),
             
             _Title('HOSPITALIZATION EVOLUTION'),
             '<p>[HOSPITALIZATION EVOLUTION]</p>',
@@ -222,7 +230,7 @@ if __name__=="__main__":
             _Image('Rio_de_Janeiro.jpg',images),            
             _SubTitle('CIDADE DO RIO DE JANEIRO - REDE SUS'),
             _Image('Rio_de_Janeiro_SUS.jpg',images),
-            _SubTitle('CIDADE DO RIO DE JANEIRO - ICU OCCUPATION (SUS)'),
+            _SubTitle('CIDADE DO RIO DE JANEIRO - ICU OCCUPATION (SUS) AND NEW DEATHS'),
             _Image('Rio_de_Janeiro_Occupation.jpg',images),
             _SubSubTitle('DADOS DE NOTICIÁRIOS'),
             '<p>[HOSPITALIZATION EVOLUTION]</p>',
@@ -231,36 +239,53 @@ if __name__=="__main__":
             
             _SubTitle('ESTADO DE SÃO PAULO'),
             _Image('Sao_Paulo_State.jpg',images),
-            _SubTitle('ESTADO DE SÃO PAULO - ICU OCCUPATION'),
+            _SubTitle('ESTADO DE SÃO PAULO - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Sao_Paulo_State_Occupation.jpg',images),
             
             _SubTitle('CIDADE DE SÃO PAULO - HOSPITAIS MUNICIPAIS'),
             _Image('Sao_Paulo.jpg',images),
-            _SubTitle('CIDADE DE SÃO PAULO - ICU OCCUPATION'),
+            _SubTitle('CIDADE DE SÃO PAULO - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Sao_Paulo_Occupation.jpg',images),
             
             _SubTitle('PERNAMBUCO'),
             _Image('Pernambuco.jpg',images),
-            _SubTitle('PERNAMBUCO - ICU OCCUPATION'),
+            _SubTitle('PERNAMBUCO - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Pernambuco_Occupation.jpg',images),
             
             _SubTitle('CEARÁ'),
             _Image('Ceara.jpg',images),
-            _SubTitle('CEARÁ - ICU OCCUPATION'),
+            _SubTitle('CEARÁ - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Ceara_Occupation.jpg',images),
             
             _SubTitle('SÃO LUÍS / MA'),
             _Image('Sao_Luis.jpg',images),
-            _SubTitle('SÃO LUÍS / MA - ICU OCCUPATION'),
+            _SubTitle('SÃO LUÍS / MA - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Sao_Luis_Occupation.jpg',images),
             
             _SubTitle('MARANHÃO'),
             _Image('Maranhao.jpg',images),
-            _SubTitle('MARANHÃO - ICU OCCUPATION'),
+            _SubTitle('MARANHÃO - ICU OCCUPATION AND NEW DEATHS'),
             _Image('Maranhao_Occupation.jpg',images),
             
-            _SubTitle('MARANHÃO'),
-            _Image('Maranhao.jpg',images),
+            _SubTitle('PARÁ'),
+            _Image('Para.jpg',images),
+            _SubTitle('PARÁ - ICU OCCUPATION AND NEW DEATHS'),
+            _Image('Para_Occupation.jpg',images),
+            
+            _SubTitle('AMAZONAS'),
+            _Image('Amazonas.jpg',images),
+            
+            _SubTitle('ÍNDICE DE ISOLAMENTO SOCIAL'),
+            '<p>[Visao Geral]</p>'
+            '<a href="https://www.inloco.com.br/covid-19">https://www.inloco.com.br/covid-19</a>',
+            
+            _SubTitle('TAXA DE CONTÁGIO*'),
+            _Image('Brazil_RT.jpg',images),
+            '<b>*Indica quantas pessoas são contaminadas, em média, por cada caso confirmado de Covid-19.</b>',
+            
+            _SubTitle('REDUÇÃO DO TRÁFEGO DE VEÍCULOS*'),
+            _Image('Traffic_change.jpg',images),
+            '<b>*Data de início sendo a partir da segunda semana de março.</b>',
             
             _SubTitle('BRAZIL – SRAG'),
             _Image('SRAG.jpg',images),
