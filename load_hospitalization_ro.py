@@ -53,7 +53,7 @@ def insertDB(db_conn,cursor,query):
     db_conn.commit()
 
 def main():
-    df = pd.read_csv(csv_file,sep=';',encoding='latin_1',skiprows=2)
+    df = pd.read_csv(csv_file,sep=';',encoding='utf-8',skiprows=1)
 
     if getDate(df) == str_date:
         icu, inpatients, icu_beds, nursery_beds = parseCSV(df)

@@ -13,7 +13,7 @@ table_icu = 'covid_19.local_hospitalization'
 table_beds = 'covid_19.local_beds'
 city_local = 'Paraná'
 current_date = date.today()-timedelta(days=1)
-url = 'http://www.saude.pr.gov.br/modules/conteudo/conteudo.php?conteudo=3507'
+url = 'http://www.saude.pr.gov.br/Pagina/Coronavirus-Covid-19'
 str_date = current_date.strftime('%d/%m/%Y')
 tor_file = '/home/ubuntu/scripts/load-dados-covid-19/tor_port'
 session = Session()
@@ -30,7 +30,7 @@ def _Postgres(DATABASE, USER, HOST, PASSWORD):
 def findPDFLink(url,str_date):
     page = session.get(url)
     bs_page = bs(page.content, 'html.parser')
-    boxes = [item.find('a').get('href') for item in bs_page.find_all('strong') if str_date in item.text]
+    boxes = [item.find('a').get('href') for item in bs_page.find_all('p') if str_date in item.text]
     if boxes:
         return boxes[0]
     return None
@@ -47,7 +47,7 @@ def parseDF(pdf_file):
 
     for i in range(3,10):
         try:
-            df = tabula.read_pdf(_file, pages = i, area=(239.116,0.744,751.559,592.025), silent=True)[0]
+            df = tabula.read_pdf(_file, pages = i, area=(503.147,0.0,784.284,592.025), silent=True)[0]
             df = df.dropna(axis=1, how='all')
             df = df[df[df.columns[0]] == 'TOTAL']
             df = df[list(df)[:7]]

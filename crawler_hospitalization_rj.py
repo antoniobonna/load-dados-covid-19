@@ -56,7 +56,7 @@ def getDate(bs_page):
 def getValuesText(boxes,key):
     for i,box in enumerate(boxes):
         if box.text.strip() == key:
-            return boxes[i+1].text.strip().replace('.','')
+            return boxes[i+2].text.strip().replace('.',''), boxes[i+4].text.strip().replace('.','')
 
 def main():
     driver = _Chrome(driver_path)
@@ -69,11 +69,9 @@ def main():
 
         boxes = bs_page.find_all('g', {'class': 'responsive-text-label'})
 
-        hospitalizados_mun = getValuesText(boxes,'Hospitalizados:')
-        uti_mun = getValuesText(boxes,'Em UTI:')
+        hospitalizados_mun,uti_mun = getValuesText(boxes,'Na rede municipal:')
         
-        hospitalizados_sus = getValuesText(boxes,'Hospitalizados (rede SUS)')
-        uti_sus = getValuesText(boxes,'Em UTI (rede SUS)')
+        hospitalizados_sus,uti_sus = getValuesText(boxes,'Rede SUS:')
 
         db_conn,cursor = _Postgres(DATABASE, USER, HOST, PASSWORD)
         query = f"INSERT INTO {tablename} VALUES ('{str(current_date)}','Rio de Janeiro - RJ',{hospitalizados_mun},{uti_mun},{hospitalizados_sus},{uti_sus})"

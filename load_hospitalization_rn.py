@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import credentials
 import psycopg2
 from subprocess import call
@@ -16,7 +16,7 @@ DATABASE, HOST, USER, PASSWORD = credentials.setDatabaseLogin()
 table_icu = 'covid_19.local_hospitalization'
 table_beds = 'covid_19.local_beds'
 state_local = 'Rio Grande do Norte'
-current_date = date.today()
+current_date = date.today()-timedelta(days=1)
 url_main = 'https://covid.lais.ufrn.br/'
 url_beds = 'https://regulacao.lais.ufrn.br/sala-situacao/sala_publica/'
 WAIT = 60

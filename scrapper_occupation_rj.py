@@ -39,19 +39,20 @@ def getDate(bs_page):
 def parseList(list):
     TAG_SUS = ['SUS','internados','UTI']
     TAG_QUEUE = ['fila','aguardando transferência','UTI']
-    queue = queue_icu = 'Null'
+    TAG_MUNICIPAL = ['rede municipal','internados','UTIs']
+    queue = queue_icu = inpacients_mun = icu_mun = 'Null'
     for phrase in list:
         if all(w in phrase for w in TAG_SUS):
             inpacients, icu = [int(w.replace('.','')) for w in phrase.split() if w.replace('.','').isdigit()]
         elif len(re.findall(r'[1-9][0-9]%',phrase)) == 2:
             tx_icu, tx_nursery = [int(i.replace('%','')) for i in re.findall(r'[1-9][0-9]%',phrase)]
-        elif all(w in phrase for w in TAG_QUEUE):
-            queue, queue_icu = [int(w.replace('.','')) for w in phrase.split() if w.replace('.','').isdigit()]
+        elif all(w in phrase for w in TAG_MUNICIPAL):
+            inpacients_mun, icu_mun = [int(w.replace('.','')) for w in phrase.split() if w.replace('.','').isdigit()]
     nursery = inpacients - icu
     icu_beds = round(icu/tx_icu * 100)
     nursery_beds = round(nursery/tx_nursery * 100)
 
-    return (icu_beds,nursery_beds,queue,queue_icu)
+    return (icu_beds,nursery_beds,queue,queue_icu,inpacients, icu,inpacients_mun, icu_mun)
 
 def insertDB(db_conn,cursor,query):
     print(query)
@@ -67,16 +68,27 @@ def main():
 
     if str_date == current_date:
 
-        list = [item.text for item in bs_page.find_all('p')]
+        list = [item.text.replace('.','') for item in bs_page.find_all('p')]
         if len(list) < 3:
-            list = [item.text for item in bs_page.find_all('span')]
-        icu_beds,nursery_beds,queue,queue_icu = parseList(list)
+            list = [item.text.replace('.','') for item in bs_page.find_all('span')]
+        icu_beds,nursery_beds,queue,queue_icu,inpacients,icu,inpacients_mun,icu_mun = parseList(list)
 
         db_conn,cursor = _Postgres(DATABASE, USER, HOST, PASSWORD)
         query = f"""INSERT INTO {table_icu} (date,local,queue,icu_queue) VALUES ('{str(current_date)}','{state_local}',{queue},{queue_icu}) 
         ON CONFLICT  (date, local) DO UPDATE SET queue = EXCLUDED.queue, icu_queue = EXCLUDED.icu_queue
         WHERE local_hospitalization.date = EXCLUDED.date AND local_hospitalization.local = EXCLUDED.local"""
         insertDB(db_conn,cursor,query)
+        
+        query = f"""INSERT INTO {table_icu} (date,local,hospitalizations_sus,icu_sus) VALUES ('{str(current_date)}','{state_local}',{inpacients},{icu}) 
+        ON CONFLICT  (date, local) DO UPDATE SET hospitalizations_sus = EXCLUDED.hospitalizations_sus, icu_sus = EXCLUDED.icu_sus
+        WHERE local_hospitalization.date = EXCLUDED.date AND local_hospitalization.local = EXCLUDED.local"""
+        insertDB(db_conn,cursor,query)
+        
+        if inpacients_mun:
+            query = f"""INSERT INTO {table_icu} (date,local,hospitalizations,icu) VALUES ('{str(current_date)}','{state_local}',{inpacients_mun},{icu_mun}) 
+            ON CONFLICT  (date, local) DO UPDATE SET hospitalizations = EXCLUDED.hospitalizations, icu = EXCLUDED.icu
+            WHERE local_hospitalization.date = EXCLUDED.date AND local_hospitalization.local = EXCLUDED.local"""
+            insertDB(db_conn,cursor,query)
 
         query = f"INSERT INTO {table_beds} VALUES ('{str(current_date)}','{state_local}','ICU SUS',{icu_beds})"
         insertDB(db_conn,cursor,query)

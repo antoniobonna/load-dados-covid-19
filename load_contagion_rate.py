@@ -31,14 +31,13 @@ def _Chrome(driver_path):
 
 def findLink(driver,WAIT):
     from time import sleep
+    sleep(5)
 
     element_present = EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe'))
     WebDriverWait(driver, WAIT).until(element_present)
-    sleep(5)
-    element_present = EC.visibility_of_element_located((By.XPATH, '//*[@class="nav nav-tabs"]/li[3]'))
+    element_present = EC.visibility_of_element_located((By.XPATH, '//a[@data-value="Num. de Reproducao"]'))
     tab = WebDriverWait(driver, WAIT).until(element_present).click()
-    element_present = EC.visibility_of_element_located((By.XPATH, '//button[@class="btn btn-box-tool"]'))
-    button = WebDriverWait(driver, WAIT).until(element_present).click()
+    sleep(5)
     element_present = EC.visibility_of_element_located((By.XPATH, '//a[@id="download_planilha_Rts"]'))
     link = WebDriverWait(driver, WAIT).until(element_present).get_attribute('href')
 
@@ -52,7 +51,7 @@ def parseDF(df):
                 'date': row['Data'],
                 'uf': column.replace('Brasil','Brazil').replace('_',' '),
                 'rt': row[column]
-            }
+                }
             new_df = new_df.append(new_row, ignore_index=True)
     new_df = new_df[['date','uf','rt']]
 
@@ -60,7 +59,7 @@ def parseDF(df):
 
 def parseBrazilDF(df):
     new_df = pd.DataFrame()
-    for idx, row in df.iterrows():
+    for idx, row in df.iterrows(): 
         for column in list(df)[1:]:
             if column.startswith('Brasil_IDH'):
                 new_row = {
@@ -84,12 +83,12 @@ def main():
     df = pd.read_excel(csv_link, sheet_name = 'Com previsao')
     brazil_df = pd.read_excel(csv_link, sheet_name = 'Semana anterior')
     df = parseDF(df)
-    brazil_df = parseBrazilDF(brazil_df)
+    #brazil_df = parseBrazilDF(brazil_df)
 
     cursor.execute("TRUNCATE {}.{}".format(schema,table_name))
     db_conn.commit()
     df.to_sql(table_name,engine,schema=schema,index=False,if_exists='append')
-    brazil_df.to_sql(table_name,engine,schema=schema,index=False,if_exists='append')
+    #brazil_df.to_sql(table_name,engine,schema=schema,index=False,if_exists='append')
     cursor.close()
     db_conn.close()
 

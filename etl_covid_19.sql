@@ -170,12 +170,13 @@ VACUUM ANALYZE covid_19_dw.city;
 
 \! echo "Carregando dados na tabela fato brazil_cities..."
 
+TRUNCATE covid_19_dw.brazil_cities;
 COPY (
 	SELECT d.date,c.city_id,cases,deaths
 		FROM covid_19.brazil_cities_stg f
 		JOIN covid_19_dw.date d ON f.date=d.date
 		JOIN covid_19_dw.city c ON f.ibge_cd=c.city_cd AND c.country = 'Brazil'
-		WHERE (d.date,c.city_id) NOT IN (SELECT date,city_id FROM covid_19_dw.brazil_cities)
+		--WHERE (d.date,c.city_id) NOT IN (SELECT date,city_id FROM covid_19_dw.brazil_cities)
 ) to '/home/ubuntu/dump/dados_covid_19/cities.txt';
 COPY covid_19_dw.brazil_cities FROM '/home/ubuntu/dump/dados_covid_19/cities.txt';
 
@@ -260,3 +261,18 @@ SELECT d.date, s.state_id, f.tcp
 	AND (d.date, s.state_id) NOT IN (SELECT date, state_id FROM covid_19_dw.brazil_traffic_state);
 
 VACUUM ANALYZE covid_19_dw.brazil_traffic_state;
+
+----------------------------------------------------------------------------
+
+-- covid_19_dw.mobility_state
+
+\! echo "Carregando dados na tabela fato mobility_state..."
+
+INSERT INTO covid_19_dw.mobility_state
+SELECT d.date, s.state_id, f.retail_and_recreation, f.market, f.parks, f.transit_stations, f.workplaces, f.residential
+	FROM covid_19.mobility_state f
+	JOIN covid_19_dw.date d ON f.date=d.date
+	JOIN covid_19_dw.state s ON f.state=s.state AND f.country = s.country
+	AND (d.date, s.state_id) NOT IN (SELECT date, state_id FROM covid_19_dw.mobility_state);
+
+VACUUM ANALYZE covid_19_dw.mobility_state;

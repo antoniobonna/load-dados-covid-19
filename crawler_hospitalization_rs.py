@@ -52,10 +52,10 @@ def getDate(bs_page):
     return strdate
 
 def getValues(beds):
-    icu_beds = int(beds[0].find('span', {'class': 'number'}).text)
-    icu = int(beds[0].find('div', {'class': 'badget'}).text.split()[0])
-    bed = int(beds[1].find('span', {'class': 'number'}).text)
-    inpacients = int(beds[1].find('div', {'class': 'badget'}).text.split()[0]) + icu
+    icu_beds = int(beds[0].find('span', {'class': 'number'}).text.replace('.',''))
+    icu = int(beds[0].find('div', {'class': 'badget'}).text.split()[0].replace('.',''))
+    bed = int(beds[1].find('span', {'class': 'number'}).text.replace('.',''))
+    inpacients = int(beds[1].find('div', {'class': 'badget'}).text.split()[0].replace('.','')) + icu
     return (bed,icu_beds,inpacients,icu)
 
 def insertDB(db_conn,cursor,query):

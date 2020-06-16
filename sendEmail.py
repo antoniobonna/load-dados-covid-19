@@ -87,7 +87,19 @@ def parsePDF(_file):
                 'Para.jpg',
                 'Para_Occupation.jpg',
                 'Para_Interior.jpg',
-                'Para_Interior_2.jpg']
+                'Para_Interior_2.jpg',
+                'Mobility_Workplaces.jpg',
+                'Mobility_Retail.jpg',
+                'Mobility_Market.jpg',
+                'Mobility_Transit.jpg',
+                'Flexibilization_Rio_de Janeiro.jpg',
+                'Flexibilization_Sao_Paulo.jpg',
+                'Flexibilization_Fortaleza.jpg',
+                'Flexibilization_Manaus.jpg',
+                'Growth_Trajectory.jpg',
+                'Flexibilization_Belo_Horizonte.jpg',
+                'USA_After_Locdown_Ends.jpg',
+                'USA_Deaths_After_Locdown_Ends.jpg']
     pages = convert_from_path(_file,size=1300)
 
     for page,image in zip(pages,image_list):
@@ -104,7 +116,11 @@ def parsePDF(_file):
                         'Deaths_After_Lockdown.jpg','Sao_Paulo_Interior.jpg','Sao_Paulo_Interior_2.jpg','Rio_de_Janeiro_Interior.jpg',
                         'Rio_de_Janeiro_Interior_2.jpg','Ceara_Interior.jpg','Ceara_Interior_2.jpg','Amazonas_Interior.jpg',
                         'Amazonas_Interior_2.jpg','Brazil_RT.jpg','Traffic_change.jpg','Para_Occupation.jpg','Para_Interior.jpg',
-                        'Para_Interior_2.jpg'):
+                        'Para_Interior_2.jpg','Mobility_Workplaces.jpg','Mobility_Retail.jpg','Mobility_Market.jpg','Mobility_Transit.jpg',
+                        'Cases_State.jpg','Cases_State_2.jpg','Deaths_State.jpg','Deaths_State_2.jpg','Cases_by_Country.jpg','After_1000th.jpg',
+                        'After_50th.jpg','Flexibilization_Rio_de Janeiro.jpg','Flexibilization_Sao_Paulo.jpg','Flexibilization_Fortaleza.jpg',
+                        'Flexibilization_Manaus.jpg','Flexibilization_Belo_Horizonte.jpg','USA_After_Locdown_Ends.jpg',
+                        'USA_Deaths_After_Locdown_Ends.jpg'):
             page = page.crop((0, 22, width, height-20))
             
         elif image in ('Hapvida_3.jpg'):
@@ -113,8 +129,7 @@ def parsePDF(_file):
         elif image in ('Santa_Catarina.jpg'):
             page = page.crop((0, 135, width-661, height-20))
         
-        elif image in ( 'Cases_State.jpg','Deaths_State.jpg','Cases_by_Country.jpg','After_1000th.jpg','After_50th.jpg','Tests.jpg','Cities.jpg',
-                        'Cities_2.jpg','Cases_State_2.jpg','Deaths_State_2.jpg'):
+        elif image in ( 'Tests.jpg','Cities.jpg','Cities_2.jpg'):
             page = page.crop((0, 135, width-2, height-20))
         
         elif image in ('States_Comparison.jpg'):
@@ -196,12 +211,14 @@ if __name__=="__main__":
             
             _SubTitle('BRAZIL – CITIES'),
             '<p>[Brazil Cities]</p>',
-            _SubSubTitle('DEATHS BY CITY'),
+            _SubSubTitle('DEATHS BY CITY - TOP 6 CAPITALS'),
             _Image('Cities_3.jpg',images),
             _Image('Cities_4.jpg',images),
-            _SubSubTitle('DEATHS PER MILLION BY CITY'),
-            _Image('Cities.jpg',images),
+            _SubSubTitle('DEATHS PER MILLION BY CITY - TOP 6 CAPITALS'),
             _Image('Cities_2.jpg',images),
+            _SubSubTitle('NEW CASES - OTHER CITIES*'),
+            '<b>*Capitais e cidades com mais de 200 mil habitantes com maiores crescimentos nos últimos 15 dias</b>',
+            
             
             _SubTitle('BRAZIL – EVOLUTION CAPITAL X INTERIOR'),
             _SubSubTitle('ESTADO DO RIO DE JANEIRO'),
@@ -220,9 +237,25 @@ if __name__=="__main__":
             _Image('Amazonas_Interior.jpg',images),
             _Image('Amazonas_Interior_2.jpg',images),
             
-            _SubSubTitle('ESTADO DO PARA'),
+            _SubSubTitle('ESTADO DO PARÁ'),
             _Image('Para_Interior.jpg',images),
             _Image('Para_Interior_2.jpg',images),
+            
+            _SubTitle('EVOLUÇÃO APÓS FLEXIBILIZAÇÃO DO ISOLAMENTO - CAPITAIS'),
+            _SubSubTitle('CIDADE DO RIO DE JANEIRO'),
+            #_Image('Flexibilization_Rio_de Janeiro.jpg',images),
+            
+            _SubSubTitle('CIDADE DE SÃO PAULO'),
+            #_Image('Flexibilization_Sao_Paulo.jpg',images),
+            
+            _SubSubTitle('FORTALEZA'),
+            #_Image('Flexibilization_Fortaleza.jpg',images),
+            
+            _SubSubTitle('MANAUS'),
+            #_Image('Flexibilization_Manaus.jpg',images),
+            
+            _SubSubTitle('BELO HORIZONTE'),
+            #_Image('Flexibilization_Belo_Horizonte.jpg',images),
             
             _Title('HOSPITALIZATION EVOLUTION'),
             '<p>[HOSPITALIZATION EVOLUTION]</p>',
@@ -234,8 +267,6 @@ if __name__=="__main__":
             _Image('Rio_de_Janeiro_Occupation.jpg',images),
             _SubSubTitle('DADOS DE NOTICIÁRIOS'),
             '<p>[HOSPITALIZATION EVOLUTION]</p>',
-            _SubTitle('CIDADE DO RIO DE JANEIRO - FILA DE ESPERA POR LEITOS'),
-            _Image('Rio_de_Janeiro_Fila.jpg',images),
             
             _SubTitle('ESTADO DE SÃO PAULO'),
             _Image('Sao_Paulo_State.jpg',images),
@@ -280,12 +311,26 @@ if __name__=="__main__":
             '<a href="https://www.inloco.com.br/covid-19">https://www.inloco.com.br/covid-19</a>',
             
             _SubTitle('TAXA DE CONTÁGIO*'),
+            _SubSubTitle('TOP 5 ESTADOS'),
             _Image('Brazil_RT.jpg',images),
             '<b>*Indica quantas pessoas são contaminadas, em média, por cada caso confirmado de Covid-19.</b>',
             
             _SubTitle('REDUÇÃO DO TRÁFEGO DE VEÍCULOS*'),
             _Image('Traffic_change.jpg',images),
             '<b>*Data de início sendo a partir da segunda semana de março.</b>',
+            
+            _SubTitle('MUDANÇAS NA MOBILIDADE EM FUNÇÃO DA COVID-19'),
+            _SubSubTitle('LOCAIS DE TRABALHO'),
+            # _Image('Mobility_Workplaces.jpg',images),
+            
+            _SubSubTitle('VAREJO E COMPRAS'),
+            # _Image('Mobility_Retail.jpg',images),
+            
+            _SubSubTitle('MERCADOS E FARMÁCIAS'),
+            # _Image('Mobility_Market.jpg',images),
+            
+            _SubSubTitle('TRANSPORTE PÚBLICO'),
+            # _Image('Mobility_Transit.jpg',images),
             
             _SubTitle('BRAZIL – SRAG'),
             _Image('SRAG.jpg',images),
@@ -306,9 +351,19 @@ if __name__=="__main__":
             _SubTitle('EVOLUTION AFTER 50TH DEATH'),
             _Image('After_50th.jpg',images),
             '<b>*Brazil last day</b>',
+            
             _SubTitle('EVOLUTION AFTER LOCKDOWN ENDS'),
-            '<p>[Lockdown]</p>',
             _Image('Cases_After_Lockdown.jpg',images),
-            _Image('Deaths_After_Lockdown.jpg',images)
+            _Image('Deaths_After_Lockdown.jpg',images),
+            
+            _SubTitle('GROWTH TRAJECTORY*'),
+            '<b>* Evolução da relação entre novos casos e casos totais. Métrica baseada no vídeo "<i><a href="https://www.youtube.com/watch?v=54XLXg4fYsc">How To Tell If We\'re Beating COVID-19</a></i>"</b>',
+            
+            _SubTitle('PAÍSES COM CRESCIMENTO DE CASOS'),
+            
+            _SubTitle('USA'),
+            _SubSubTitle('CASES AFTER LOCKDOWN ENDS'),
+            
+            _SubTitle('CHINA')
             ])
     print('E-mail sent!')
